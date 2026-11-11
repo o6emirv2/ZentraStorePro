@@ -1,2 +1,0 @@
-# ZentraStorePro
-ZENTRA STORE PRO

@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "checkedAt": 1793909961682,
+  "sourceDigest": "73cf75d10c749da759d84ae17046e39b7b10a0a55e4d7eaf053ac2f58c26b440",
+  "source": {
+    "exitCode": 0
+  },
+  "modules": {
+    "exitCode": 0
+  },
+  "catalog": {
+    "exitCode": 0
+  },
+  "regression": {
+    "exitCode": 0,
+    "passed": 305,
+    "failed": 0,
+    "total": 305,
+    "skipped": 0
+  },
+  "dependencies": {
+    "verified": true,
+    "checkedAt": 1793909983413,
+    "vulnerabilities": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0
+  }
+}
