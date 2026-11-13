@@ -2,7 +2,7 @@
 
 const MAX_QUICK_LINKS = 16;
 const CHANNEL_LINKS_REVISION = 88;
-const QUICK_LINK_PLATFORMS = Object.freeze(['telegram', 'tiktok', 'whatsapp', 'instagram']);
+const QUICK_LINK_PLATFORMS = Object.freeze(['telegram', 'tiktok', 'whatsapp']);
 const TIKTOK_OFFICIAL_URL = 'https://www.tiktok.com/@zentrastorelive';
 const TELEGRAM_SUPPORT_USERNAME = 'ZENTRA_STORE';
 const LINK_ID_PATTERN = /^[a-z0-9][a-z0-9-]{2,59}$/;
@@ -18,11 +18,6 @@ const PLATFORM_RULES = Object.freeze({
     hosts: Object.freeze(['tiktok.com', 'www.tiktok.com']),
     canonicalHost: 'www.tiktok.com',
     path: /^\/@[A-Za-z0-9._]{2,24}\/?$/
-  }),
-  instagram: Object.freeze({
-    hosts: Object.freeze(['instagram.com', 'www.instagram.com']),
-    canonicalHost: 'www.instagram.com',
-    path: /^\/[A-Za-z0-9._]{1,30}\/?$/
   }),
   whatsapp: Object.freeze({
     hosts: Object.freeze(['wa.me']),

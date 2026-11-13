@@ -131,9 +131,6 @@ test('Firestore client policy denies balance and order document writes', () => {
 
 test('static HTML and server social source agree on link destinations', () => {
   const page = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-  assert.ok(page.includes(`href="${links.TIKTOK_OFFICIAL_URL}"`));
-  const app = fs.readFileSync(path.join(root, 'public/js/app/store.js'), 'utf8');
-  assert.ok(app.includes('storefront?.quickLinks'));
-  assert.ok(app.includes('/api/store/catalog'));
+  for (const link of links.DEFAULT_QUICK_LINKS) assert.ok(page.includes(`href="${link.url}"`), link.id);
   assert.ok(page.includes('<link rel="canonical" href="https://zentrastore.com.tr/"'));
 });

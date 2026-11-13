@@ -298,18 +298,22 @@ async function processMaintenanceJob(db, admin, ref) {
 }
 async function drainMaintenanceJobs() {
   const { db, admin } = initFirebaseAdmin();
-  if (!db) return 0;
+  if (!db) return;
   const jobs = await db.collection('storeMaintenanceJobs').where('availableAt', '<=', Date.now()).orderBy('availableAt').limit(2).get();
   for (const doc of jobs.docs) await processMaintenanceJob(db, admin, doc.ref);
-  return jobs.size;
 }
-const maintenanceWorker = require('./workerScheduler').createWorker({
-  run: drainMaintenanceJobs,
-  idleMs: Math.max(60_000, Number(process.env.MAINTENANCE_IDLE_POLL_MS) || 60_000),
-  onError: (error, retry) => require('./errorLogger').logError(error, { event: 'maintenance.worker', code: error.code || 'MAINTENANCE_FAILED', ...retry })
-});
-function wakeMaintenanceWorker() { maintenanceWorker.wake(); }
-function startMaintenanceWorker() { if (initFirebaseAdmin().db) maintenanceWorker.start(); }
-function stopMaintenanceWorker() { maintenanceWorker.stop(); }
+let timer, enabled = false, running = false;
+function wakeMaintenanceWorker() {
+  if (!enabled || running) return;
+  clearTimeout(timer);
+  timer = setTimeout(async () => {
+    running = true;
+    try { await drainMaintenanceJobs(); } catch (error) { require('./errorLogger').logError(error, { event: 'maintenance.worker', code: error.code || 'MAINTENANCE_FAILED' }); }
+    finally { running = false; if (enabled) { timer = setTimeout(wakeMaintenanceWorker, 1000); timer.unref?.(); } }
+  }, 20);
+  timer.unref?.();
+}
+function startMaintenanceWorker() { enabled = true; wakeMaintenanceWorker(); }
+function stopMaintenanceWorker() { enabled = false; clearTimeout(timer); }
 module.exports = { OPERATIONS, permission, createPreview, confirmJob, getJob, orderPolicy, deletionPolicy, auditPolicy,
   deleteOrder, processMaintenanceJob, drainMaintenanceJobs, wakeMaintenanceWorker, startMaintenanceWorker, stopMaintenanceWorker };

@@ -76,7 +76,7 @@ async function isAdminSessionActive({ uid = '', email = '', session = '' } = {})
     if (!row || row.revokedAt || Number(row.expiresAt || 0) <= Date.now() || !(await sessionPolicyMatches(row))) return false;
     const matches = row.uid === String(uid || '').trim()
       && row.email === String(email || '').trim().toLowerCase();
-    if (matches && !transient.memory && !(cached && cached.until > Date.now())) cacheSession(id, row);
+    if (matches && !transient.memory) cacheSession(id, row);
     return matches;
   } catch (_) {
     return false;

@@ -8,8 +8,6 @@ let appCheckTokenProvider = null;
 let runtimePromise = null;
 
 const USER_MESSAGES = Object.freeze({
-  STORE_STORAGE_TEMPORARILY_UNAVAILABLE: 'Mağazanın veri hizmeti geçici olarak sınırlandırılmış. İşlem uygulanmadı; biraz sonra yeniden dene.',
-  ADMIN_FINANCIAL_PERMISSION_REQUIRED: 'Ödeme veya iade işlemi için finans yetkisi gerekli.',
   STORE_PRICE_CHANGED: 'Ürünün fiyatı değişti. İşlem uygulanmadı; güncel sepetinizi kontrol edin.',
   STORE_CATALOG_CHANGED: 'Satın alma sırasında ürün bilgileri değişti. İşlem uygulanmadı; güncel sepetinizi kontrol edin.',
   STORE_BALANCE_RECORD_INVALID: 'Bakiyenizi güvenli biçimde doğrulayamadık. İşlem yapılmadı; destek ekibiyle iletişime geçin.',

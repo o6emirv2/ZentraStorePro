@@ -97,7 +97,7 @@ function requestEnvelopeGuard(req, res, next) {
   const contentLength = parseContentLength(req.headers['content-length']);
   if (contentLength < 0) return response(res, 400, 'CONTENT_LENGTH_INVALID', req);
   const bodyLimit = req.path === '/api/admin/store/products/bulk' ? CATALOG_BULK_BODY_LIMIT_BYTES
-    : (req.path === '/api/admin/store/products' && method === 'POST' || /^\/api\/admin\/store\/products\/[a-z0-9-]+$/.test(req.path) && method === 'PATCH') ? PRODUCT_CREATE_BODY_LIMIT_BYTES : API_BODY_LIMIT_BYTES;
+    : req.path === '/api/admin/store/products' && method === 'POST' ? PRODUCT_CREATE_BODY_LIMIT_BYTES : API_BODY_LIMIT_BYTES;
   if (contentLength > bodyLimit && String(req.path || '').startsWith('/api')) {
     return response(res, 413, 'REQUEST_BODY_TOO_LARGE', req);
   }
@@ -144,7 +144,7 @@ function apiRequestGuard(req, res, next) {
 
 function bodySafetyGuard(req, res, next) {
   const maxObjectKeys = req.originalUrl?.split('?')[0] === '/api/admin/store/products/bulk' ? 10_000 : MAX_OBJECT_KEYS;
-  if (!inspectBody(req.body, { maxObjectKeys, allowProductImage: (req.method === 'POST' && req.originalUrl?.split('?')[0] === '/api/admin/store/products') || (req.method === 'PATCH' && /^\/api\/admin\/store\/products\/[a-z0-9-]+$/.test(req.originalUrl?.split('?')[0] || '')) })) return response(res, 400, 'REQUEST_BODY_UNSAFE', req);
+  if (!inspectBody(req.body, { maxObjectKeys, allowProductImage: req.method === 'POST' && req.originalUrl?.split('?')[0] === '/api/admin/store/products' })) return response(res, 400, 'REQUEST_BODY_UNSAFE', req);
   return next();
 }
 

@@ -1,129 +1,149 @@
-"use strict";
-const fs = require("node:fs"),
-  path = require("node:path"),
-  { spawnSync } = require("node:child_process");
-const root = path.resolve(__dirname, ".."),
-  files = [],
-  failures = [];
-function walk(dir) {
-  for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (
-      [
-        "node_modules",
-        ".git",
-        "dist-pages",
-        "test-results",
-        "coverage",
-      ].includes(item.name)
-    )
-      continue;
-    const p = path.join(dir, item.name);
-    if (item.isDirectory()) walk(p);
-    else files.push(p);
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const { spawnSync } = require('node:child_process');
+const root = path.resolve(__dirname, '..');
+const failures = [];
+const files = [];
+function walk(directory) {
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    if (['node_modules', '.git', 'dist-pages'].includes(entry.name)) continue;
+    const filename = path.join(directory, entry.name);
+    if (entry.isDirectory()) walk(filename);
+    else files.push(filename);
   }
 }
 walk(root);
-let scripts = 0,
-  references = 0;
-for (const file of files) {
-  const name = path.relative(root, file).replaceAll(path.sep, "/");
-  if (!/\.(js|mjs|cjs|json|html|css)$/.test(name)) continue;
-  const source = fs.readFileSync(file, "utf8");
-  if (/\.(js|mjs|cjs)$/.test(name)) {
-    const esm =
-      name.startsWith("admin/") ||
-      name.startsWith("public/js/") ||
-      name.endsWith(".mjs");
-    const r = spawnSync(
-      process.execPath,
-      esm ? ["--input-type=module", "--check"] : ["--check", file],
-      { input: esm ? source : undefined, encoding: "utf8" },
-    );
-    if (r.status !== 0) failures.push(name + ": " + r.stderr);
-    scripts++;
+const relative = (filename) => path.relative(root, filename).split(path.sep).join('/');
+let jsCount = 0, referenceCount = 0;
+let cssCount = 0;
+function cssStructureValid(source) {
+  const stack = [];
+  let quote = '', comment = false;
+  for (let i = 0; i < source.length; i++) {
+    const c = source[i], next = source[i + 1];
+    if (comment) { if (c === '*' && next === '/') { comment = false; i++; } continue; }
+    if (quote) { if (c === '\\') i++; else if (c === quote) quote = ''; continue; }
+    if (c === '/' && next === '*') { comment = true; i++; continue; }
+    if (c === '"' || c === "'") { quote = c; continue; }
+    if ('{(['.includes(c)) stack.push(c);
+    else if ('})]'.includes(c) && stack.pop() !== ({ '}': '{', ')': '(', ']': '[' })[c]) return false;
   }
-  if (name.endsWith(".json"))
-    try {
-      JSON.parse(source);
-    } catch {
-      failures.push(name + ": invalid JSON");
+  return !quote && !comment && stack.length === 0;
+}
+const viewport = '<meta name="viewport" content="width=device-width, initial-scale=0.8, minimum-scale=0.8, maximum-scale=0.8, viewport-fit=cover" />';
+for (const filename of files) {
+  if (!/\.(?:js|mjs|cjs|html|css|json)$/.test(filename)) continue;
+  const source = fs.readFileSync(filename, 'utf8');
+  const name = relative(filename);
+  if (name.endsWith('.css')) {
+    cssCount++;
+    for (const match of source.matchAll(/url\(\s*['"]?([^)'"\s]+)['"]?\s*\)/g)) {
+      const ref = match[1].split(/[?#]/)[0];
+      if (/^(?:https?:|data:|\/\/|#)/.test(ref)) continue;
+      const target = ref.startsWith('/') ? path.join(root, ref) : path.resolve(path.dirname(filename), ref);
+      referenceCount++;
+      if (!fs.existsSync(target)) failures.push(name + ': eksik CSS dosyası ' + ref);
     }
-  if (name.endsWith(".html")) {
-    const viewports = [
-      ...source.matchAll(/<meta\b[^>]*name=["']viewport["'][^>]*>/gi),
-    ];
-    if (
-      viewports.length !== 1 ||
-      !viewports[0][0].includes("width=device-width") ||
-      !viewports[0][0].includes("initial-scale=0.85") ||
-      viewports[0][0].includes("maximum-scale=0.85") ||
-      viewports[0][0].includes("user-scalable=no")
-    )
-      failures.push(name + ": inaccessible or invalid viewport");
+    if (!cssStructureValid(source)) failures.push(name + ': CSS blok, parantez veya metin yapısı bozuk');
+  }
+  if (/\.(?:js|mjs|cjs)$/.test(name)) {
+    const esm = name.endsWith('.mjs') || name === 'script.js' || name.startsWith('public/js/') || name.startsWith('admin/');
+    const result = spawnSync(process.execPath, esm ? ['--input-type=module', '--check'] : ['--check', filename], { input: esm ? source : undefined, encoding: 'utf8' });
+    if (result.status !== 0) failures.push(name + ': ' + result.stderr);
+    jsCount++;
+    const imports = /(?:from\s*|import\s*\(|require\s*\()\s*['"](\.[^'"]+)['"]/g;
+    for (const match of source.matchAll(imports)) {
+      const target = path.resolve(path.dirname(filename), match[1].split('?')[0]);
+      if (![target, target + '.js', target + '.json', path.join(target, 'index.js')].some((item) => fs.existsSync(item))) failures.push(name + ': eksik import ' + match[1]);
+    }
+  }
+  if (name.endsWith('.html')) {
+    const metas = [...source.matchAll(/<meta\b[^>]*\bname=["']viewport["'][^>]*>/gi)].map((x) => x[0]);
+    const expectedViewport = viewport;
+    if (metas.length !== 1 || metas[0] !== expectedViewport) failures.push(name + ': viewport değişti veya çoğaltıldı');
     const ids = [...source.matchAll(/\sid="([^"]+)"/g)].map((x) => x[1]);
-    if (ids.length !== new Set(ids).size)
-      failures.push(name + ": duplicate element ID");
-    for (const m of source.matchAll(/\b(?:src|href)="([^"]+)"/g)) {
-      const ref = m[1].split(/[?#]/)[0];
-      if (
-        /^(?:https?:|data:|mailto:|tel:|#|\/\/)/.test(ref) ||
-        !/\.(?:js|mjs|css|png|jpg|jpeg|webp|ico|svg|webmanifest)$/.test(ref)
-      )
-        continue;
-      const aliases = {
-        "/favicon.ico": "public/assets/images/favicon.ico",
-        "/apple-touch-icon.png": "public/assets/images/apple-touch-icon.png",
-      };
-      const dest = aliases[ref]
-        ? path.join(root, aliases[ref])
-        : ref.startsWith("/")
-          ? path.join(root, ref)
-          : path.resolve(path.dirname(file), ref);
-      references++;
-      if (!fs.existsSync(dest)) failures.push(name + ": missing " + ref);
+    if (ids.length !== new Set(ids).size) failures.push(name + ': tekrarlanan HTML kimliği');
+    for (const match of source.matchAll(/\b(?:src|href)="([^"]+)"/g)) {
+      const ref = match[1].split(/[?#]/)[0];
+      if (/^(?:https?:|data:|mailto:|tel:|\/\/)/.test(ref) || !/\.(?:js|css|svg|png|jpeg|jpg|webp|ico|wav)$/.test(ref)) continue;
+      const target = ref.startsWith('/') ? path.join(root, ref) : path.resolve(path.dirname(filename), ref);
+      referenceCount++;
+      if (!fs.existsSync(target)) failures.push(name + ': eksik dosya ' + ref);
     }
   }
-  if (name.endsWith(".css")) {
-    const cleaned = source
-      .replace(/\/\*[\s\S]*?\*\//g, "")
-      .replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, "");
-    if (
-      (cleaned.match(/{/g) || []).length !== (cleaned.match(/}/g) || []).length
-    )
-      failures.push(name + ": CSS block imbalance");
-    for (const m of source.matchAll(/url\(['"]?([^)'"\s]+)['"]?\)/g)) {
-      const ref = m[1].split(/[?#]/)[0];
-      if (/^(https?:|data:|#)/.test(ref)) continue;
-      references++;
-      if (
-        !fs.existsSync(
-          ref.startsWith("/")
-            ? path.join(root, ref)
-            : path.resolve(path.dirname(file), ref),
-        )
-      )
-        failures.push(name + ": missing CSS asset " + ref);
+  if (name.endsWith('.json')) {
+    try { JSON.parse(source); } catch (_) { failures.push(name + ': geçersiz JSON'); }
+  }
+  if (!name.startsWith('scripts/') && !name.endsWith('package-lock.json')) {
+    for (const match of source.matchAll(/["'](\/public\/assets\/[A-Za-z0-9_./-]+\.(?:png|svg|jpg|jpeg|webp|ico|wav))["']/g)) {
+      referenceCount++;
+      if (!fs.existsSync(path.join(root, match[1]))) failures.push(name + ': eksik asset ' + match[1]);
     }
   }
 }
-const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"))),
-  lock = JSON.parse(fs.readFileSync(path.join(root, "package-lock.json")));
-if (
-  pkg.version !== lock.version ||
-  pkg.version !== lock.packages[""].version ||
-  JSON.stringify(pkg.dependencies) !==
-    JSON.stringify(lock.packages[""].dependencies)
-)
-  failures.push("Package/lock mismatch");
+if (!fs.readFileSync(path.join(root, 'server.js'), 'utf8').includes(viewport)) failures.push('Dinamik yönetici sayfasının viewport değeri değişti');
+const domGroups = [
+  ['index.html', ['script.js', 'public/js/store/storefront.js', 'public/js/store/customer-app.js', 'public/js/store/customer-renderers.js', 'public/js/store/product-gallery.js', 'public/js/store/showcase-slider.js']],
+  [['admin/admin.html', 'admin/index.html'], ['admin/admin-legacy-entry.js', 'admin/admin-entry.js', 'admin/admin-dashboard.js', 'admin/admin-gate.js']]
+];
+let literalDomReferences = 0;
+for (const [htmlName, scriptNames] of domGroups) {
+  const htmlSource = (Array.isArray(htmlName) ? htmlName : [htmlName]).map(name => fs.readFileSync(path.join(root, name), 'utf8')).join('\n');
+  const elementIds = new Set([...htmlSource.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]));
+  const sharedUI = fs.readFileSync(path.join(root, 'public/js/ui/app-ui.js'), 'utf8');
+  for (const match of sharedUI.matchAll(/\.id\s*=\s*['"]([A-Za-z][\w:-]*)['"]|\bid="([^"]+)"/g)) elementIds.add(match[1] || match[2]);
+  const referencedIds = new Set();
+  for (const scriptName of scriptNames) {
+    const scriptSource = fs.readFileSync(path.join(root, scriptName), 'utf8');
+    for (const match of scriptSource.matchAll(/(?:\$|querySelector)\(\s*['"]#([A-Za-z][\w:-]*)['"]\s*\)/g)) referencedIds.add(match[1]);
+    for (const match of scriptSource.matchAll(/getElementById\(\s*['"]([A-Za-z][\w:-]*)['"]\s*\)/g)) referencedIds.add(match[1]);
+  }
+  literalDomReferences += referencedIds.size;
+  for (const id of referencedIds) if (!elementIds.has(id)) failures.push(`${htmlName}: bulunamayan DOM kimliği #${id}`);
+}
+const catalog = JSON.parse(fs.readFileSync(path.join(root, 'public/data/store-products.json')));
+const productIds = new Set();
+const oldVisualBrand = /\b(?:shelby\s+store|shelbyios)\b/i;
+for (const file of files) {
+  const name = relative(file);
+  if (!/\.(?:js|mjs|cjs|html|css|json|yaml)$/.test(name) || name === 'scripts/verify-source.cjs') continue;
+  const content = fs.readFileSync(file, 'utf8');
+  const withoutExplicitOldTiktok = content.replaceAll('https://www.tiktok.com/@zentrastorelive', '');
+  if (oldVisualBrand.test(withoutExplicitOldTiktok)) failures.push(name + ': eski mağaza markası görünür kaynakta bulunuyor');
+}
+
+for (const product of catalog.products) {
+  if (productIds.has(product.id)) failures.push('Tekrarlanan ürün ' + product.id);
+  productIds.add(product.id);
+  const planKeys = new Set();
+  for (const plan of product.plans || []) {
+    if (planKeys.has(plan.key) || !Number.isSafeInteger(plan.priceKurus) || plan.priceKurus < 1) failures.push('Geçersiz paket ' + product.id + ':' + plan.key);
+    planKeys.add(plan.key);
+  }
+}
+const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json')));
+const lock = JSON.parse(fs.readFileSync(path.join(root, 'package-lock.json')));
+if (pkg.version !== lock.version || pkg.version !== lock.packages[''].version || JSON.stringify(pkg.dependencies) !== JSON.stringify(lock.packages[''].dependencies) || JSON.stringify(pkg.engines) !== JSON.stringify(lock.packages[''].engines)) failures.push('Paket ve kilit dosyası uyumsuz');
+const { CHANNEL_LINKS_REVISION, DEFAULT_QUICK_LINKS } = require(path.join(root, 'server/core/storeLinks.js'));
+const expectedChannelUrls = [
+  'https://t.me/+B_m6rCQxMhQ5MjFk',
+  'https://t.me/+t17sK4mUhbszZTM0',
+  'https://t.me/+chmRui3czAdhNTE0',
+  'https://t.me/zentrastorefree',
+  'https://www.tiktok.com/@zentrastorelive',
+  'https://wa.me/905339673730',
+  'https://t.me/ZENTRA_STORE'
+];
+if (CHANNEL_LINKS_REVISION !== 88 || JSON.stringify(DEFAULT_QUICK_LINKS.map((link) => link.url)) !== JSON.stringify(expectedChannelUrls)) failures.push('Resmî bağlantı paketi veya geçiş sürümü beklenen değerle uyuşmuyor');
+for (const filename of ['admin/index.html', 'admin/admin.html']) if (!fs.readFileSync(path.join(root, filename), 'utf8').includes('name="zentra-admin-release" content="90"')) failures.push(filename + ': yönetim sürümü uyuşmuyor');
+const entryRelease = fs.readFileSync(path.join(root, 'admin/admin-entry.js'), 'utf8');
+const serverRelease = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
+if (!entryRelease.includes('?view=v90') || !serverRelease.includes("req.query.view === 'v90'")) failures.push('Yönetim görünümü istemci/sunucu sürümü uyuşmuyor');
+const homeSource = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+if ((homeSource.match(/data-quick-link-id=/g) || []).length !== expectedChannelUrls.length || expectedChannelUrls.some((url) => !homeSource.includes(`href="${url}"`))) failures.push('Ana sayfa bağlantı kartları sunucu bağlantı paketiyle uyuşmuyor');
 if (failures.length) {
-  console.error(failures.join("\n"));
-  process.exitCode = 1;
-} else
-  console.log(
-    JSON.stringify({
-      scripts,
-      localReferences: references,
-      html: files.filter((x) => x.endsWith(".html")).length,
-      result: "PASS",
-    }),
-  );
+  console.error(failures.join('\n'));
+  process.exit(1);
+}
+console.log(JSON.stringify({ syntaxFiles: jsCount, cssStructureFiles: cssCount, htmlPages: files.filter((f) => f.endsWith('.html')).length, localReferences: referenceCount, literalDomReferences, products: productIds.size, officialLinks: expectedChannelUrls.length, viewport: '0.8 / 0.8 / 0.8', result: 'PASS' }));

@@ -54,7 +54,7 @@ const adminBootstrapLimiter = protectedLimiter('adminBootstrap');
 
 async function appCheckGuard(req, res, next) {
   const path = String(req.path || '');
-  const safePublicRead = ['GET', 'HEAD'].includes(String(req.method || '').toUpperCase()) && ['/store/catalog', '/store/experience', '/store/links'].includes(path);
+  const safePublicRead = ['GET', 'HEAD'].includes(String(req.method || '').toUpperCase()) && path === '/store/catalog';
   if (env.firebase.appCheckMode === 'off' || path === '/public/runtime-config' || path === '/client-errors' || path === '/healthz' || safePublicRead) return next();
   const token = String(req.headers['x-firebase-appcheck'] || '').trim();
   const { appCheck } = initFirebaseAdmin();

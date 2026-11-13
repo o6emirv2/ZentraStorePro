@@ -5,6 +5,7 @@ const { initFirebaseAdmin } = require('../config/firebaseAdmin');
 const { logError } = require('./errorLogger');
 const PAGE_SIZE = 50, LEASE_MS = 60_000, RETRY_MS = 30_000;
 const FINAL_TIME = 8640000000000000;
+let timer = null, running = false, enabled = false;
 
 function enqueueRestockJob(tx, db, { id, sourceSkus, product, plan, now }) {
   tx.create(db.collection('storeRestockJobs').doc(id), {
@@ -92,7 +93,7 @@ async function processRestockJob(db, admin, ref) {
 
 async function drainRestockJobs() {
   const { db, admin } = initFirebaseAdmin();
-  if (!db || !admin) return 0;
+  if (!db || !admin) return;
   const jobs = await db.collection('storeRestockJobs').where('availableAt', '<=', Date.now()).orderBy('availableAt').limit(2).get();
   for (const doc of jobs.docs) {
     try { await processRestockJob(db, admin, doc.ref); }
@@ -100,15 +101,18 @@ async function drainRestockJobs() {
       logError(error, { event: 'restock.job.failed', code: error.code || 'RESTOCK_JOB_FAILED' });
     }
   }
-  return jobs.size;
 }
-const restockWorker = require('./workerScheduler').createWorker({
-  run: drainRestockJobs,
-  idleMs: Math.max(60_000, Number(process.env.RESTOCK_IDLE_POLL_MS) || 60_000),
-  onError: (error, retry) => logError(error, { event: 'restock.worker.failed', code: error.code || 'RESTOCK_WORKER_FAILED', ...retry })
-});
-function wakeRestockWorker() { restockWorker.wake(); }
-function startRestockWorker() { if (initFirebaseAdmin().db) restockWorker.start(); }
-function stopRestockWorker() { restockWorker.stop(); }
+function wakeRestockWorker() {
+  if (!enabled || running) return;
+  clearTimeout(timer);
+  timer = setTimeout(async () => {
+    running = true;
+    try { await drainRestockJobs(); } catch (error) { logError(error, { event: 'restock.worker.failed', code: error.code || 'RESTOCK_WORKER_FAILED' }); }
+    finally { running = false; if (enabled) { timer = setTimeout(wakeRestockWorker, 20_000); timer.unref?.(); } }
+  }, 0);
+  timer.unref?.();
+}
+function startRestockWorker() { if (!initFirebaseAdmin().db) return; enabled = true; wakeRestockWorker(); }
+function stopRestockWorker() { enabled = false; clearTimeout(timer); }
 
 module.exports = { enqueueRestockJob, drainRestockJobs, processRestockJob, startRestockWorker, stopRestockWorker, wakeRestockWorker };

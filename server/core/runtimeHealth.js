@@ -6,7 +6,7 @@ let cached = null, pending = null, probe = null;
 
 async function connectionReadiness() {
   const now = Date.now();
-  if (cached && now - cached.at < 60_000) return cached.value;
+  if (cached && now - cached.at < 15_000) return cached.value;
   if (pending) return pending;
   pending = (async () => {
     const configuration = env.configurationReport();

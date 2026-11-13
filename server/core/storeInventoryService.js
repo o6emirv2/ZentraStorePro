@@ -236,9 +236,7 @@ function inventoryPathIdentity(value = '') {
   return match ? { path, sku: match[1], itemId: match[2] } : null;
 }
 
-let stockFailureUntil = 0;
 async function summaryMapForCatalog(catalog, { fresh = false } = {}) {
-  if (stockFailureUntil > Date.now()) throw serviceError('STORE_STORAGE_TEMPORARILY_UNAVAILABLE', 503);
   const now = Date.now();
   const targets = new Map();
   for (const product of catalog.products || []) {
@@ -305,9 +303,6 @@ async function summaryMapForCatalog(catalog, { fresh = false } = {}) {
   stockLoads.set(signature, entry);
   try {
     return await loading;
-  } catch (error) {
-    if (require('./workerScheduler').quotaError(error)) { stockFailureUntil = Date.now() + 60_000; throw serviceError('STORE_STORAGE_TEMPORARILY_UNAVAILABLE', 503); }
-    throw error;
   } finally {
     if (stockLoads.get(signature) === entry) stockLoads.delete(signature);
   }

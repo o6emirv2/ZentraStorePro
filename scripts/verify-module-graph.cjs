@@ -8,7 +8,7 @@ function walk(directory) {
     if (row.isDirectory()) walk(filename); else if (/\.(?:m?js)$/.test(row.name)) entries.push(filename);
   }
 }
-walk(path.join(root, 'admin')); walk(path.join(root, 'public/js'));
+walk(path.join(root, 'admin')); walk(path.join(root, 'public/js')); entries.push(path.join(root, 'script.js'));
 function moduleFor(filename) {
   if (!cache.has(filename)) cache.set(filename, new vm.SourceTextModule(fs.readFileSync(filename, 'utf8'), { identifier: filename, context }));
   return cache.get(filename);

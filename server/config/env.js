@@ -51,7 +51,7 @@ function isPlaceholder(value = '') {
   const raw = String(value || '').trim();
   return !raw
     || /^<[^>]+>$/.test(raw)
-    || /^(?:replace(?:[_ -]|$)|example(?:[_ .-]|$)|change[_-]?me(?:[_ -]|$)|your[_ -]|buraya(?:[_ -]|$)|degistir(?:[_ -]|$)|değiştir(?:[_ -]|$)|mevcut_|yeni_|secret_buraya)/i.test(raw);
+    || /replace|example|change[_-]?me|your[_-]?|buraya|degistir|değiştir|mevcut_|yeni_|secret_buraya/i.test(raw);
 }
 
 function value(first = '', second = '', fallback = '') {
