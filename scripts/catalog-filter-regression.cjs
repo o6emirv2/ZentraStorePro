@@ -46,8 +46,8 @@ test("store and admin pages use the user-requested stable mobile viewport", () =
 });
 test("new storefront and portal load only the current presentation entry points", () => {
   const read = (name) => fs.readFileSync(path.join(root, name), "utf8");
-  assert(read("index.html").includes("/public/js/app/store.js?v=92"));
-  assert(read("admin/index.html").includes("/admin/portal.js?v=92"));
+  assert(read("index.html").includes("/public/js/app/store.js?v=93"));
+  assert(read("admin/index.html").includes("/admin/portal.js?v=93"));
   assert(!read("index.html").includes("storefront.js"));
   assert(!read("admin/index.html").includes("admin-entry.js"));
 });

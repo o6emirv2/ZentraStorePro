@@ -1,7 +1,15 @@
-import "./device.js?v=92";
-import { presentScreen } from "./motion.mjs?v=92";
-import { productGallery, galleryIndex } from "./gallery.mjs?v=92";
-import { filterProducts } from "./catalog.mjs?v=92";
+import {
+  authMode,
+  authPath,
+  safeReturnTo,
+  syncNavigation,
+  measureHeader,
+} from "./navigation.mjs?v=93";
+import { clearCustomerSessionView } from "./session-view.mjs?v=93";
+import "./device.js?v=93";
+import { presentScreen } from "./motion.mjs?v=93";
+import { productGallery, galleryIndex } from "./gallery.mjs?v=93";
+import { filterProducts } from "./catalog.mjs?v=93";
 import {
   storeApi,
   loadStoreRuntimeConfig,
@@ -21,7 +29,7 @@ import {
   changeStorePassword,
 } from "../store/auth.js?v=zentra-ui-v90r1";
 import { createPurchaseTracker } from "../store/purchase-tracker.js?v=zentra-ui-v90r1";
-import { createCart, priceCart } from "./cart.mjs?v=92";
+import { createCart, priceCart, checkoutState } from "./cart.mjs?v=93";
 import {
   escape as e,
   money,
@@ -35,7 +43,7 @@ import {
   status,
   safeImage,
   copyText,
-} from "./ui.js?v=92";
+} from "./ui.js?v=93";
 const $ = (s) => document.querySelector(s),
   main = $("#main");
 let storage;
@@ -66,7 +74,6 @@ const state = {
   promotion: null,
   checkoutBusy: false,
   render: 0,
-  authTab: "login",
   selectedPlans: new Map(),
   selectedImages: new Map(),
 };
@@ -118,23 +125,11 @@ function message(error) {
   );
 }
 function header() {
-  const count = cart.items().reduce((s, x) => s + x.quantity, 0);
-  $("#cart-count").textContent = count;
-  $("#mobile-cart-count").textContent = count;
-  $("#header-name").textContent = uid() ? userName() : "Giriş yap";
-  if (uid())
-    $("#header-avatar").textContent = userName()
-      .slice(0, 1)
-      .toLocaleUpperCase("tr-TR");
-  else $("#header-avatar").innerHTML = icon("user");
-  const r = route().name;
-  document.querySelectorAll("[data-tab]").forEach((a) => {
-    const active =
-      a.dataset.tab === r || (r === "category" && a.dataset.tab === "catalog");
-    a.classList.toggle("active", active);
-    active
-      ? a.setAttribute("aria-current", "page")
-      : a.removeAttribute("aria-current");
+  syncNavigation(document, {
+    signedIn: Boolean(uid()),
+    pathname: location.pathname,
+    search: location.search,
+    cartCount: cart.items().reduce((sum, item) => sum + item.quantity, 0),
   });
 }
 function stockLabel(p) {
@@ -170,26 +165,14 @@ function catalogMarkup(r, { home = false } = {}) {
     ];
   return `<section class="catalog-section" id="catalog"><div class="section-heading"><div><span class="eyebrow">${home ? "SENİN İÇİN SEÇTİK" : "DİJİTAL DÜNYANI KEŞFET"}</span><${home ? "h2" : "h1"}>${r.name === "favorites" ? "Favorilerin" : r.query.get("q") ? `“${e(r.query.get("q"))}” için sonuçlar` : home ? "Yeni favorini keşfet" : r.name === "category" ? e({ android: "Android ürünleri", ios: "iOS ürünleri", pubg: "PUBG Mobile", oxide: "Oxide", gbox: "GBOX" }[r.id] || r.id) : "Tüm ürünler"}<span class="accent-dot">.</span></${home ? "h2" : "h1"}></div>${home ? `<a class="section-link" href="/magaza" data-nav>Tümünü gör ${icon("arrow")}</a>` : `<span class="result-count">${rows.length} ürün</span>`}</div><div class="catalog-toolbar"><div class="filter-tabs">${cats.map(([id, label]) => `<a class="filter-tab ${((r.name === "category" ? r.id : r.query.get("category")) || "") === id ? "active" : ""}" href="${id ? "/kategori/" + id : "/magaza"}" data-nav>${label}</a>`).join("")}</div><label><span class="sr-only">Ürün sıralaması</span><select class="sort-select" id="sort-products"><option value="">Önerilen sıralama</option value="price-up" ${r.query.get("sort") === "price-up" ? "selected" : ""}>Fiyat: düşükten yükseğe</option><option value="price-down" ${r.query.get("sort") === "price-down" ? "selected" : ""}>Fiyat: yüksekten düşüğe</option><option value="name" ${r.query.get("sort") === "name" ? "selected" : ""}>İsme göre A–Z</option></select></label>${!home ? `<button class="filter-tab" data-action="filters">${icon("filter")} Filtrele</button>` : ""}</div>${rows.length ? `<div class="product-grid">${(home ? rows.slice(0, 8) : rows).map(card).join("")}</div>` : empty(r.name === "favorites" ? "Favori listen henüz boş" : "Aradığın ürünü bulamadık", r.name === "favorites" ? "Beğendiğin ürünlerdeki kalp simgesine dokun." : "Farklı bir kelimeyle ara veya filtrelerini temizle.")}</section>`;
 }
-let originalHero =
-    main.querySelector(".hero")?.outerHTML ||
-    document.querySelector("#home-hero-template")?.innerHTML ||
-    "",
-  originalTrust =
-    main.querySelector(".trust-strip")?.outerHTML ||
-    document.querySelector("#home-trust-template")?.innerHTML ||
-    "";
+const originalTrust =
+  main.querySelector(".trust-strip")?.outerHTML ||
+  document.querySelector("#home-trust-template")?.innerHTML ||
+  "";
 function home() {
   const storefront = state.catalog?.storefront || {},
     notice = storefront.announcement || {};
-  const heroTemplate = document.createElement("template");
-  heroTemplate.innerHTML = originalHero;
-  if (storefront.home?.title)
-    heroTemplate.content.querySelector("h1").textContent =
-      storefront.home.title;
-  if (storefront.home?.message)
-    heroTemplate.content.querySelector(".hero-copy>p").textContent =
-      storefront.home.message;
-  return `${notice.enabled ? `<div class="notice"><div><b>${e(notice.title)}</b><p>${e(notice.message)}</p></div></div>` : ""}${heroTemplate.innerHTML}${originalTrust}${(state.experience?.banners || []).map((b) => `<section class="community-banner" style="margin-bottom:22px">${b.image ? `<img src="${e(safeImage(b.image))}" alt="" width="140" height="100" loading="lazy" style="border-radius:12px"/>` : ""}<div><span class="eyebrow">ZENTRA VİTRİNİ</span><h2>${e(b.title)}</h2><p>${e(b.message)}</p></div><a class="button outline" href="${e(b.href)}" data-nav>Keşfet ${icon("arrow")}</a></section>`).join("")}<section><div class="section-heading"><div><span class="eyebrow">TAM SANA GÖRE</span><h2>Senin dünyan, senin seçimin<span class="accent-dot">.</span></h2></div><span class="result-count">Android &amp; iOS</span></div><div class="category-tiles">${[
+  return `${notice.enabled ? `<div class="notice"><div><b>${e(notice.title)}</b><p>${e(notice.message)}</p></div></div>` : ""}<h1 class="sr-only">Zentra Store</h1>${originalTrust}${(state.experience?.banners || []).map((b) => `<section class="community-banner" style="margin-bottom:22px">${b.image ? `<img src="${e(safeImage(b.image))}" alt="" width="140" height="100" loading="lazy" style="border-radius:12px"/>` : ""}<div><span class="eyebrow">ZENTRA VİTRİNİ</span><h2>${e(b.title)}</h2><p>${e(b.message)}</p></div><a class="button outline" href="${e(b.href)}" data-nav>Keşfet ${icon("arrow")}</a></section>`).join("")}<section><div class="section-heading"><div><span class="eyebrow">TAM SANA GÖRE</span><h2>Senin dünyan, senin seçimin<span class="accent-dot">.</span></h2></div><span class="result-count">Android &amp; iOS</span></div><div class="category-tiles">${[
     ["android", "Android", "Daha fazlasını keşfet", "◈"],
     ["ios", "iOS", "Deneyimini yenile", "◉"],
     ["oxide", "Oxide", "Yeni paketleri gör", "◇"],
@@ -278,6 +261,13 @@ function cartMarkup() {
         x.product.automaticEnabled !== false,
     );
   if (!walletAllowed) state.payment = "telegram";
+  const gate = checkoutState({
+    signedIn: Boolean(uid()),
+    busy: state.checkoutBusy,
+    invalidItems: view.invalid.length > 0,
+    payment: state.payment,
+    telegramEnabled: state.catalog?.storefront?.services?.telegramSupport,
+  });
   return (
     heading(
       "Sepetim",
@@ -296,7 +286,7 @@ function cartMarkup() {
       })
       .join(
         "",
-      )}</div><aside class="panel checkout-panel"><h2>Sipariş özeti</h2><div class="summary-row"><span>Ürünler</span><b>${money(view.totalKurus)}</b></div>${state.promotion ? `<div class="summary-row discount"><span>${e(state.promotion.code)} indirimi</span><b>−${money(state.promotion.discountKurus)}</b></div>` : ""}<div class="summary-row total"><span>Toplam</span><span>${money(Math.max(0, view.totalKurus - (state.promotion?.discountKurus || 0)))}</span></div><form class="coupon-input" id="coupon-form"><label class="sr-only" for="coupon-code">İndirim kodu</label><input id="coupon-code" name="code" placeholder="İndirim kodun var mı?" maxlength="32" required/><button class="button secondary small" type="submit">Uygula</button></form><fieldset class="payment-options" style="border:0;padding:0"><legend class="fine-print">Ödeme yöntemi</legend>${walletAllowed ? `<label class="payment-option"><input type="radio" name="payment" value="wallet" ${state.payment === "wallet" ? "checked" : ""}/><span><b>Bakiye ile öde</b><small>Hesap bakiyen: ${uid() ? (state.auth.account && !state.auth.accountStale ? money(state.auth.account.balanceKurus) : "Doğrulama bekleniyor") : "Giriş yaparak görüntüle"}</small></span></label>` : ""}<label class="payment-option"><input type="radio" name="payment" value="telegram" ${state.payment === "telegram" ? "checked" : ""}/><span><b>Telegram üzerinden görüş</b><small>Ödeme ve teslimat için destek ekibiyle iletişim kur.</small></span></label></fieldset><button class="button primary" data-action="checkout" ${state.checkoutBusy || view.invalid.length || (state.payment === "telegram" && state.catalog?.storefront?.services?.telegramSupport === false) ? "disabled" : ""}>${icon("shield")} ${uid() ? "Siparişi oluştur" : "Giriş yap ve devam et"} ${icon("arrow")}</button><p class="fine-print">Kesin fiyat ve stok sipariş anında doğrulanır. Telegram siparişi, ödemenin onaylandığı anlamına gelmez.</p></aside></div>`
+      )}</div><aside class="panel checkout-panel"><h2>Sipariş özeti</h2><div class="summary-row"><span>Ürünler</span><b>${money(view.totalKurus)}</b></div>${state.promotion ? `<div class="summary-row discount"><span>${e(state.promotion.code)} indirimi</span><b>−${money(state.promotion.discountKurus)}</b></div>` : ""}<div class="summary-row total"><span>Toplam</span><span>${money(Math.max(0, view.totalKurus - (state.promotion?.discountKurus || 0)))}</span></div><form class="coupon-input" id="coupon-form"><label class="sr-only" for="coupon-code">İndirim kodu</label><input id="coupon-code" name="code" placeholder="İndirim kodun var mı?" maxlength="32" required/><button class="button secondary small" type="submit">Uygula</button></form><fieldset class="payment-options" style="border:0;padding:0"><legend class="fine-print">Ödeme yöntemi</legend>${walletAllowed ? `<label class="payment-option"><input type="radio" name="payment" value="wallet" ${state.payment === "wallet" ? "checked" : ""}/><span><b>Bakiye ile öde</b><small>Hesap bakiyen: ${uid() ? (state.auth.account && !state.auth.accountStale ? money(state.auth.account.balanceKurus) : "Doğrulama bekleniyor") : "Giriş yaparak görüntüle"}</small></span></label>` : ""}<label class="payment-option"><input type="radio" name="payment" value="telegram" ${state.payment === "telegram" ? "checked" : ""}/><span><b>Telegram üzerinden görüş</b><small>Ödeme ve teslimat için destek ekibiyle iletişim kur.</small></span></label></fieldset><button class="button primary" data-action="checkout" ${gate.disabled ? "disabled" : ""}>${icon("shield")} ${e(gate.label)} ${icon("arrow")}</button>${gate.message ? `<p class="fine-print checkout-message" role="status">${e(gate.message)}</p>` : ""}<p class="fine-print">Kesin fiyat ve stok sipariş anında doğrulanır. Telegram siparişi, ödemenin onaylandığı anlamına gelmez.</p></aside></div>`
   );
 }
 function avatarMarkup() {
@@ -377,8 +367,8 @@ function orders() {
   );
 }
 function authPage() {
-  const reg = state.authTab === "register";
-  return `<section class="auth-page"><div class="auth-visual"><span class="eyebrow">DİJİTAL DÜNYAN, TEK HESAPTA</span><h2>Senin için<br/>yeni bir başlangıç.</h2><p>Favorilerini keşfet. Siparişlerini takip et.<br/>Zentra deneyimini kendi hesabında yaşa.</p></div><div class="auth-form-panel"><div class="auth-tabs" role="tablist" aria-label="Hesap işlemi"><button role="tab" aria-selected="${!reg}" data-action="auth-tab" data-tab="login" class="${!reg ? "active" : ""}">Giriş yap</button><button role="tab" aria-selected="${reg}" data-action="auth-tab" data-tab="register" class="${reg ? "active" : ""}">Hesap oluştur</button></div><h1>${reg ? "Zentra’ya katıl." : "Yeniden hoş geldin."}</h1><p>${reg ? "Sadece sana ait bir alışveriş deneyimi." : "Kaldığın yerden keşfetmeye devam et."}</p><form id="auth-form">${reg ? `<div class="field-row">${field("firstName", "Ad", "text", "", 'required maxlength="50" autocomplete="given-name"')}${field("lastName", "Soyad", "text", "", 'required maxlength="50" autocomplete="family-name"')}</div>${field("username", "Kullanıcı adı", "text", "", 'required minlength="5" maxlength="20" autocomplete="username"')}${field("birthDate", "Doğum tarihi", "date", "", 'required min="1900-01-01" max="' + new Date().toISOString().slice(0, 10) + '"')}${field("email", "E-posta", "email", "", 'required maxlength="254" autocomplete="email"')}` : field("identifier", "E-posta veya kullanıcı adı", "text", "", 'required maxlength="254" autocomplete="username"')}${field("password", "Şifre", "password", "", 'required minlength="8" maxlength="4096" autocomplete="' + (reg ? "new-password" : "current-password") + '"')}${reg ? field("passwordRepeat", "Şifre tekrarı", "password", "", 'required minlength="8" autocomplete="new-password"') : ""}<label class="checkbox"><input name="remember" type="checkbox"/> Bu cihazda oturumumu açık tut</label><p class="form-error" role="alert" hidden></p><button type="submit" class="button primary">${reg ? "Hesap oluştur" : "Güvenli giriş yap"} ${icon("arrow")}</button></form>${!reg ? '<button class="text-button fine-print" data-action="reset-password">Şifremi unuttum</button>' : ""}<p class="fine-print">Hesap bilgilerin yalnızca hesap ve sipariş işlemlerinde kullanılır. Ayrıntıları gizlilik alanından inceleyebilirsin.</p></div></section>`;
+  const reg = authMode(location.search) === "register";
+  return `<section class="auth-page"><div class="auth-form-panel"><div class="auth-tabs" role="tablist" aria-label="Hesap işlemi"><button role="tab" aria-selected="${!reg}" data-action="auth-tab" data-tab="login" class="${!reg ? "active" : ""}">Giriş yap</button><button role="tab" aria-selected="${reg}" data-action="auth-tab" data-tab="register" class="${reg ? "active" : ""}">Hesap oluştur</button></div><h1>${reg ? "Zentra’ya katıl." : "Yeniden hoş geldin."}</h1><p>${reg ? "Sadece sana ait bir alışveriş deneyimi." : "Kaldığın yerden keşfetmeye devam et."}</p><form id="auth-form">${reg ? `<div class="field-row">${field("firstName", "Ad", "text", "", 'required maxlength="50" autocomplete="given-name"')}${field("lastName", "Soyad", "text", "", 'required maxlength="50" autocomplete="family-name"')}</div>${field("username", "Kullanıcı adı", "text", "", 'required minlength="5" maxlength="20" autocomplete="username"')}${field("birthDate", "Doğum tarihi", "date", "", 'required min="1900-01-01" max="' + new Date().toISOString().slice(0, 10) + '"')}${field("email", "E-posta", "email", "", 'required maxlength="254" autocomplete="email"')}` : field("identifier", "E-posta veya kullanıcı adı", "text", "", 'required maxlength="254" autocomplete="username"')}${field("password", "Şifre", "password", "", 'required minlength="8" maxlength="4096" autocomplete="' + (reg ? "new-password" : "current-password") + '"')}${reg ? field("passwordRepeat", "Şifre tekrarı", "password", "", 'required minlength="8" autocomplete="new-password"') : ""}<label class="checkbox"><input name="remember" type="checkbox"/> Bu cihazda oturumumu açık tut</label><p class="form-error" role="alert" hidden></p><button type="submit" class="button primary">${reg ? "Hesap oluştur" : "Güvenli giriş yap"} ${icon("arrow")}</button></form>${!reg ? '<button class="text-button fine-print" data-action="reset-password">Şifremi unuttum</button>' : ""}<p class="fine-print">Hesap bilgilerin yalnızca hesap ve sipariş işlemlerinde kullanılır. Ayrıntıları gizlilik alanından inceleyebilirsin.</p></div></section>`;
 }
 function socialLinks() {
   return (state.catalog?.storefront?.quickLinks || []).filter(
@@ -422,12 +412,16 @@ async function render() {
     presentScreen(main, markup, { isCurrent: () => version === state.render });
   header();
   const titles = {
-    home: "Dijital deneyimini yükselt.",
+    home: "Android ve iOS ürünleri",
     catalog: "Tüm ürünler",
     category: r.id,
     product: product(r.id)?.name || "Ürün",
     cart: "Sepetim",
-    account: "Hesabım",
+    account: uid()
+      ? "Hesabım"
+      : authMode(location.search) === "register"
+        ? "Kayıt Ol"
+        : "Giriş Yap",
     orders: "Siparişlerim",
     favorites: "Favorilerim",
     support: "Yardım & destek",
@@ -579,7 +573,7 @@ function add(id, key) {
 }
 function authRequired() {
   if (uid()) return false;
-  go("/hesabim");
+  go(authPath("login", location.pathname + location.search));
   toast("Devam etmek için hesabına giriş yap.", "info");
   return true;
 }
@@ -791,8 +785,15 @@ async function action(button) {
     if (a === "reload-catalog") return await loadCatalog();
     if (a === "retry-view") return await render();
     if (a === "auth-tab") {
-      state.authTab = button.dataset.tab;
-      render();
+      go(
+        authPath(
+          button.dataset.tab,
+          new URLSearchParams(location.search).get("next") ||
+            (route().name !== "account"
+              ? location.pathname + location.search
+              : ""),
+        ),
+      );
       return;
     }
     if (a === "reset-password") {
@@ -885,10 +886,12 @@ async function action(button) {
       return;
     }
     if (a === "delivery") {
+      const ownerUid = uid();
       busy(button, true, "Açılıyor…");
       const result = await storeApi(
         `/api/store/orders/${encodeURIComponent(id)}/delivery`,
       );
+      if (!ownerUid || ownerUid !== uid()) return;
       const d = result.delivery || {};
       const items = d.items || d.keys || [];
       modal({
@@ -983,7 +986,7 @@ document.addEventListener("submit", async (event) => {
   busy(button, true);
   try {
     if (form.id === "auth-form") {
-      if (state.authTab === "register")
+      if (authMode(location.search) === "register")
         await registerStore({
           ...Object.fromEntries(data),
           remember: data.get("remember") === "on",
@@ -995,7 +998,15 @@ document.addEventListener("submit", async (event) => {
           remember: data.get("remember") === "on",
         });
       toast("Hesap oturumun doğrulandı.");
-      go(cart.items().length ? "/sepet" : "/hesabim");
+      const next = safeReturnTo(
+        new URLSearchParams(location.search).get("next") ||
+          (route().name !== "account"
+            ? location.pathname + location.search
+            : ""),
+      );
+      go(next || (cart.items().length ? "/sepet" : "/hesabim"), {
+        replace: true,
+      });
     } else if (form.id === "coupon-form") {
       if (authRequired()) return;
       const result = await storeApi("/api/store/promotions/validate", {
@@ -1087,20 +1098,29 @@ document
   .querySelectorAll("[data-icon]")
   .forEach((n) => (n.innerHTML = icon(n.dataset.icon)));
 $("#copyright-year").textContent = new Date().getFullYear();
+measureHeader(document, window);
+header();
 let priorUid = "",
   priorAuthKey = "";
 subscribeStoreAuth((snapshot) => {
   state.auth = snapshot;
-  header();
   const next = snapshot.user?.uid || "";
   if (priorUid !== next) {
-    state.orders = [];
-    state.ordersLoaded = false;
+    ++state.render;
+    clearCustomerSessionView(state, document);
+    if (
+      ["account", "orders", "coupons", "notifications", "cart"].includes(
+        route().name,
+      )
+    )
+      main.replaceChildren();
     priorUid = next;
   }
+  header();
   const key = JSON.stringify([
     next,
     snapshot.ready,
+    snapshot.busy,
     snapshot.account?.username,
     snapshot.account?.balanceKurus,
     snapshot.account?.firstName,
@@ -1114,7 +1134,9 @@ subscribeStoreAuth((snapshot) => {
   if (
     changed &&
     !snapshot.busy &&
-    ["account", "orders", "coupons", "notifications"].includes(route().name)
+    ["account", "orders", "coupons", "notifications", "cart"].includes(
+      route().name,
+    )
   )
     void render();
 });

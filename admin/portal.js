@@ -1,4 +1,4 @@
-import "../public/js/app/device.js?v=92";
+import "../public/js/app/device.js?v=93";
 import "./admin-browser-session.js?v=zentra-ui-v90r1";
 import "./admin-auth.js?v=zentra-ui-v90r1";
 import { adminFetch } from "./admin-core.js?v=zentra-ui-v90r1";
@@ -9,12 +9,14 @@ import {
   field,
   busy,
   toast,
-} from "../public/js/app/ui.js?v=92";
+} from "../public/js/app/ui.js?v=93";
 const root = document.getElementById("admin-root");
 let ticket = "",
   step = 0,
   operating = false,
-  context = null;
+  context = null,
+  disposeWorkspace = null,
+  portalGeneration = 0;
 const auth = () => window.ZENTRA_ADMIN_AUTH;
 const readableError = (error) => {
   const text = String(error?.message || "Güvenli bağlantı kurulamadı.");
@@ -24,6 +26,9 @@ const readableError = (error) => {
     : text;
 };
 function gate(error = "") {
+  ++portalGeneration;
+  disposeWorkspace?.();
+  disposeWorkspace = null;
   root.innerHTML = `<main class="gate-layout" id="admin-main"><section class="gate-brand">${brand()}<div><span class="eyebrow">MAĞAZANIN KONTROLÜ SENDE</span><h1>Her ayrıntı.<br/>Tek bir merkez.</h1><p>Ürünlerin, siparişlerin ve müşterilerin.<br/>Güvenli ve düzenli bir yönetim deneyimi.</p></div><span class="gate-security">${icon("shield")} Kimlik ve işlemler sunucuda doğrulanır.</span></section><section class="gate-content"><div class="gate-inner"><span class="eyebrow">YÖNETİCİ ERİŞİMİ</span><h2>Güvenli giriş.</h2><p class="fine-print">Mağaza hesabın ve ek güvenlik adımları birlikte doğrulanır.</p><ol class="gate-steps" aria-label="Güvenlik adımları">${["Hesap eşleşmesi", "UID doğrulaması", "Hesap şifresi", "Güvenlik şifresi 1", "Güvenlik şifresi 2", "Authenticator kodu"].map((s, i) => `<li class="${i + 1 < step ? "complete" : i + 1 === step ? "current" : ""}"><span>${i + 1 < step ? "✓" : i + 1}</span>${s}</li>`).join("")}</ol>${error ? `<p class="form-error" role="alert">${e(error)}</p>` : ""}<div id="gate-form-area">${step < 3 ? `<p class="fine-print">Mağazada yetkili hesabınla oturum açtıktan sonra güvenlik adımlarını başlat.</p><a class="button secondary" href="/hesabim" style="margin-top:18px">Hesabıma git ${icon("arrow")}</a><button class="button primary" id="gate-start" style="margin-top:18px">Oturumu doğrula</button>` : `<form id="gate-step-form">${step === 6 ? field("totpCode", "Google Authenticator kodu", "text", "", 'required inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="one-time-code"') : field("password", step === 3 ? "Hesap şifren" : `Güvenlik şifresi ${step - 3}`, "password", "", 'required autocomplete="current-password" minlength="' + (step === 3 ? "6" : "12") + '" maxlength="4096"')}<p class="form-error" id="gate-error" role="alert" hidden></p><button class="button primary" type="submit">Doğrula ve devam et ${icon("arrow")}</button></form><button class="text-button fine-print" id="gate-reset">Güvenlik adımlarını baştan başlat</button>`}</div></div><a href="/" class="gate-home">${icon("back")} Mağazaya dön</a></section></main>`;
   document.getElementById("gate-start")?.addEventListener("click", startGate);
   document.getElementById("gate-reset")?.addEventListener("click", resetGate);
@@ -136,10 +141,16 @@ async function submitStep(event) {
   }
 }
 async function openWorkspace() {
-  const { mountWorkspace } = await import("./workspace.js?v=92");
+  const generation = portalGeneration,
+    session = context;
+  const { mountWorkspace, unmountWorkspace } =
+    await import("./workspace.js?v=93");
+  if (!session || generation !== portalGeneration || context !== session)
+    return;
+  disposeWorkspace = unmountWorkspace;
   await mountWorkspace({
     root,
-    context,
+    context: session,
     api: adminFetch,
     onLogout: async () => {
       await adminFetch("/api/auth/admin/gate/logout", { body: {} });

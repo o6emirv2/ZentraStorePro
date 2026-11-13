@@ -252,7 +252,7 @@ test("all brand placements use the supplied original logo assets", () => {
   }
   const html = fs.readFileSync(path.join(__dirname, "../index.html"), "utf8");
   assert(html.includes("/public/assets/images/apple-touch-icon.png"));
-  assert(html.includes("/public/assets/images/zentra-mark.webp"));
+  assert(!html.includes('class="hero"'));
   for (const id of [
     "search-form",
     "search-input",

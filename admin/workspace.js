@@ -1,6 +1,7 @@
-import "../public/js/app/device.js?v=92";
-import { presentScreen } from "../public/js/app/motion.mjs?v=92";
-import { metricLabel, metricValue } from "./metrics.mjs?v=92";
+import { dismissPrivateDialogs } from "../public/js/app/session-view.mjs?v=93";
+import "../public/js/app/device.js?v=93";
+import { presentScreen } from "../public/js/app/motion.mjs?v=93";
+import { metricLabel, metricValue } from "./metrics.mjs?v=93";
 import {
   escape as e,
   brand,
@@ -16,7 +17,7 @@ import {
   statusNames,
   safeImage,
   empty,
-} from "../public/js/app/ui.js?v=92";
+} from "../public/js/app/ui.js?v=93";
 import {
   CATEGORY_PRESETS,
   GAME_KEYS,
@@ -52,10 +53,11 @@ let api,
   experience = null,
   activeJob = null,
   jobTimer = null,
-  currentView = "";
+  currentView = "",
+  mounted = false;
 const can = (p) =>
   context?.permissions?.includes("*") || context?.permissions?.includes(p);
-const qs = (s) => root.querySelector(s);
+const qs = (s) => root?.querySelector(s);
 const select = (name, label, options, value = "") =>
   `<label class="field"><span>${e(label)}</span><select name="${e(name)}">${options.map(([k, v]) => `<option value="${e(k)}" ${k === value ? "selected" : ""}>${e(v)}</option>`).join("")}</select></label>`;
 const check = (name, label, value = false) =>
@@ -98,6 +100,7 @@ function hashChange() {
   void show();
 }
 async function show() {
+  if (!mounted || !main?.isConnected) return;
   const id = location.hash.replace("#panel/", "") || "overview",
     selected = views.find((x) => x[0] === id) || views[0];
   currentView = selected[0];
@@ -447,7 +450,7 @@ async function settings() {
       "Mağaza ayarları",
       "Ana sayfa içeriklerini ve gerçek satış kanallarını yönet.",
     ) +
-    `<form id="settings-form" class="panel admin-form-panel"><h2>Mağaza vitrini</h2>${field("homeTitle", "Ana sayfa başlığı", "text", s.home?.title || "", 'maxlength="80"')}${area("homeMessage", "Ana sayfa açıklaması", s.home?.message || "", 'maxlength="240"')}${check("announcementEnabled", "Duyuru etkin", s.announcement?.enabled)}${field("announcementTitle", "Duyuru başlığı", "text", s.announcement?.title || "", 'maxlength="80"')}${area("announcementMessage", "Duyuru metni", s.announcement?.message || "", 'maxlength="240"')}<h2 style="margin-top:25px">Satış ve destek</h2>${field("telegramUsername", "Telegram destek kullanıcı adı", "text", s.support?.telegramUsername || "ZENTRA_STORE", 'required pattern="[A-Za-z0-9_]{5,32}" maxlength="32"')}${check("automaticDelivery", "Otomatik teslimat açık", s.services?.automaticDelivery !== false)}${check("balancePayment", "Bakiye ile ödeme açık", s.services?.balancePayment !== false)}${check("telegramSupport", "Telegram siparişleri açık", s.services?.telegramSupport !== false)}${check("maintenance", "Mağazayı bakım moduna al", s.maintenance)}${can("store.content.write") ? '<button class="button primary" type="submit">Ayarları kaydet</button>' : ""}</form>`
+    `<form id="settings-form" class="panel admin-form-panel"><h2>Mağaza vitrini</h2>${check("announcementEnabled", "Duyuru etkin", s.announcement?.enabled)}${field("announcementTitle", "Duyuru başlığı", "text", s.announcement?.title || "", 'maxlength="80"')}${area("announcementMessage", "Duyuru metni", s.announcement?.message || "", 'maxlength="240"')}<h2 style="margin-top:25px">Satış ve destek</h2>${field("telegramUsername", "Telegram destek kullanıcı adı", "text", s.support?.telegramUsername || "ZENTRA_STORE", 'required pattern="[A-Za-z0-9_]{5,32}" maxlength="32"')}${check("automaticDelivery", "Otomatik teslimat açık", s.services?.automaticDelivery !== false)}${check("balancePayment", "Bakiye ile ödeme açık", s.services?.balancePayment !== false)}${check("telegramSupport", "Telegram siparişleri açık", s.services?.telegramSupport !== false)}${check("maintenance", "Mağazayı bakım moduna al", s.maintenance)}${can("store.content.write") ? '<button class="button primary" type="submit">Ayarları kaydet</button>' : ""}</form>`
   );
 }
 async function staff() {
@@ -482,13 +485,28 @@ function mutation({
     submit,
     danger,
     onSubmit: async (data, form) => {
+      const session = context;
+      const request = api;
+      const ensureSession = () => {
+        if (!mounted || context !== session || !form.isConnected)
+          throw new Error(
+            "Yönetici oturumu veya işlem penceresi değişti. Sonucu yeniden kontrol et.",
+          );
+      };
+      ensureSession();
       const payload = await build(data, form);
+      ensureSession();
       await window.ZENTRA_ADMIN_AUTH.reauthenticate(data.get("actionPassword"));
-      const result = await api(typeof url === "function" ? url(data) : url, {
-        method,
-        body: payload,
-        timeoutMs: 30000,
-      });
+      ensureSession();
+      const result = await request(
+        typeof url === "function" ? url(data) : url,
+        {
+          method,
+          body: payload,
+          timeoutMs: 30000,
+        },
+      );
+      ensureSession();
       toast("İşlem sunucuda doğrulandı ve kaydedildi.");
       if (after) await after(result);
       else void show();
@@ -701,6 +719,7 @@ function rememberJob() {
   } catch {}
 }
 async function startPreview(operation, button) {
+  const session = context;
   busy(button, true, "Önizleme hazırlanıyor…");
   let pending;
   try {
@@ -720,6 +739,7 @@ async function startPreview(operation, button) {
     const r = await api("/api/admin/store/maintenance/preview", {
       body: pending,
     });
+    if (!mounted || context !== session) return;
     activeJob = r.job;
     rememberJob();
     try {
@@ -752,13 +772,19 @@ function drawJob() {
   slot.innerHTML = `<section class="job-panel"><h2>${e(states[j.state] || j.state)}</h2><p>Hedeflenen: ${j.total || 0} · Uygun: ${j.eligible || 0} · Kapsam dışı: ${j.excluded || 0}<br/>İptal edilebilir: ${j.cancellable || 0} · Silinebilir: ${j.deletable || 0}</p><progress class="job-progress" max="${Math.max(1, j.total || 1)}" value="${j.completed || 0}" aria-label="Toplu işlem ilerlemesi"></progress><div class="job-counts"><span>Tamamlanan: ${j.completed || 0}</span><span>Başarılı: ${j.succeeded || 0}</span><span>Başarısız: ${j.failed || 0}</span><span>Atlanan: ${j.skipped || 0}</span></div>${j.error ? `<p>${e(j.error)}</p>` : ""}<p>Finansal kayıtlar ve saklama kapsamındaki denetimler korunur.</p>${["ready", "paused"].includes(j.state) ? button("bulk-confirm", "Kapsamı incele ve onayla", "check") : ""}${["completed", "failed"].includes(j.state) ? button("bulk-results", "Ayrıntılı sonuçlar", "grid") : ""}</section>`;
 }
 async function pollJob() {
-  if (!activeJob || !["preparing", "running"].includes(activeJob.state)) return;
-  const id = activeJob.id;
+  if (
+    !mounted ||
+    !activeJob ||
+    !["preparing", "running"].includes(activeJob.state)
+  )
+    return;
+  const id = activeJob.id,
+    generation = version;
   try {
     const r = await api(
       `/api/admin/store/maintenance/${encodeURIComponent(id)}?results=0`,
     );
-    if (activeJob?.id !== id) return;
+    if (!mounted || generation !== version || activeJob?.id !== id) return;
     activeJob = r.job;
     rememberJob();
     drawJob();
@@ -769,6 +795,7 @@ async function pollJob() {
         `Toplu işlem sonuçlandı: ${activeJob.succeeded || 0} başarılı, ${activeJob.failed || 0} başarısız.`,
       );
   } catch (error) {
+    if (!mounted || generation !== version) return;
     toast(
       "İlerleme sorgulanamadı. Görev sunucuda devam edebilir. Sayfayı yenileyerek sonucu kontrol et.",
       "error",
@@ -999,10 +1026,12 @@ function stockImport() {
     });
 }
 async function stockList(productId, planKey) {
+  const session = context;
   const r = await api(
     "/api/admin/store/inventory?" +
       new URLSearchParams({ productId, planKey, limit: "50" }),
   );
+  if (!mounted || context !== session) return;
   const list =
     r.inventory?.items ||
     r.items ||
@@ -1048,6 +1077,8 @@ async function click(event) {
   if (!target) return;
   event.preventDefault();
   const { adminAction: a, id } = target.dataset;
+  const session = context;
+  if (!mounted || !session) return;
   try {
     if (a === "plan-add") {
       const form = target.closest("form"),
@@ -1094,9 +1125,7 @@ async function click(event) {
     }
     if (a === "logout") {
       await onLogout();
-      window.removeEventListener("hashchange", hashChange);
-      clearTimeout(jobTimer);
-      version++;
+      unmountWorkspace();
       return;
     }
     if (a === "refresh") {
@@ -1123,6 +1152,7 @@ async function click(event) {
       const r = await api(
         "/api/admin/store/maintenance/" + encodeURIComponent(activeJob.id),
       );
+      if (!mounted || context !== session) return;
       modal({
         title: "Toplu işlem sonuçları",
         body: `<p class="fine-print">Sonuçlar sayfalanır. Bu görünüm ilk ${r.results?.length || 0} kaydı gösterir.</p>${(r.results || []).map((x) => `<div class="stock-row"><span><b>${e(x.reference || x.id)}</b><small>${e(x.channel)} · ${e(x.state)} · ${e(x.code || x.result)}</small></span></div>`).join("")}`,
@@ -1140,6 +1170,7 @@ async function click(event) {
     if (a === "balance-code-new") return balanceCodeEditor();
     if (a === "balance-code-list") {
       const r = await api("/api/admin/store/balance-codes");
+      if (!mounted || context !== session) return;
       modal({
         title: "Bakiye kodları",
         body: `${(r.codes || r.promotions || []).map((c) => `<div class="stock-row"><span><b>${e(c.code)} · ${e(c.title)}</b><small>${e(c.status)} · ${money(c.value)}</small></span></div>`).join("") || '<p class="fine-print">Bakiye kodu bulunamadı.</p>'}`,
@@ -1307,10 +1338,6 @@ function submit(event) {
       url: "/api/admin/store/content",
       method: "PATCH",
       build: () => ({
-        home: {
-          title: data.get("homeTitle"),
-          message: data.get("homeMessage"),
-        },
         announcement: {
           enabled: data.has("announcementEnabled"),
           title: data.get("announcementTitle"),
@@ -1330,9 +1357,31 @@ function submit(event) {
     });
   }
 }
+export function unmountWorkspace() {
+  mounted = false;
+  ++version;
+  clearTimeout(jobTimer);
+  jobTimer = null;
+  document.removeEventListener("click", click);
+  document.removeEventListener("change", change);
+  document.removeEventListener("submit", submit);
+  window.removeEventListener("hashchange", hashChange);
+  document.body.classList.remove("menu-open");
+  dismissPrivateDialogs(document);
+  if (root?.querySelector(".admin-shell")) root.replaceChildren();
+  context = null;
+  api = null;
+  main = null;
+  rows = [];
+  catalog = null;
+  experience = null;
+  activeJob = null;
+}
 export async function mountWorkspace(options) {
+  unmountWorkspace();
   ({ root, context, api, onLogout } = options);
-  version++;
+  mounted = true;
+  const generation = ++version;
   filterStatus = "";
   orderCursor = "";
   userCursor = "";
@@ -1344,6 +1393,7 @@ export async function mountWorkspace(options) {
         await api("/api/admin/store/maintenance/" + saved.id + "?results=0")
       ).job;
   } catch {}
+  if (!mounted || generation !== version) return;
   shell();
   await show();
 }

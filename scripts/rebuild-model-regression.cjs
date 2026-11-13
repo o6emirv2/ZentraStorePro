@@ -227,3 +227,39 @@ test("verified dashboard zeroes remain zero and financial formatting only receiv
   assert.equal(metricLabel({}, "revenue", format), "Doğrulanamadı");
   assert.equal(calls, 2);
 });
+
+test("guest checkout opens sign-in even when a sales channel or a saved item is unavailable", async () => {
+  const { checkoutState } = await model;
+  const gate = checkoutState({
+    signedIn: false,
+    invalidItems: true,
+    payment: "telegram",
+    telegramEnabled: false,
+  });
+  assert.equal(gate.disabled, false);
+  assert.equal(gate.label, "Giriş yap ve devam et");
+});
+test("authenticated checkout explains unavailable channels and invalid items instead of offering an inert action", async () => {
+  const { checkoutState } = await model;
+  const closed = checkoutState({
+    signedIn: true,
+    payment: "telegram",
+    telegramEnabled: false,
+  });
+  assert.equal(closed.disabled, true);
+  assert(closed.message.includes("kapalı"));
+  assert.equal(
+    checkoutState({ signedIn: true, invalidItems: true }).disabled,
+    true,
+  );
+  assert.equal(
+    checkoutState({ signedIn: true, payment: "wallet", telegramEnabled: false })
+      .disabled,
+    false,
+  );
+});
+test("pending checkout stays disabled through auth state transitions to prevent a duplicate submission", async () => {
+  const { checkoutState } = await model;
+  for (const signedIn of [true, false])
+    assert.equal(checkoutState({ signedIn, busy: true }).disabled, true);
+});

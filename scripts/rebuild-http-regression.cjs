@@ -312,3 +312,31 @@ test("unrecognized historical payment channels are preserved and never displayed
     original.paymentMethod,
   );
 });
+
+test("removed marketing sections never reappear in direct home, listing, detail or account HTML", async () => {
+  for (const path of [
+    "/",
+    "/magaza",
+    "/urun/kingmod",
+    "/hesabim?islem=kayit",
+  ]) {
+    const response = await fetch(f.origin + path);
+    assert.equal(response.status, 200, path);
+    const html = await response.text();
+    assert(!html.includes('class="hero"'), path);
+    assert(!html.includes("home-hero-template"), path);
+    assert(!html.includes("auth-visual"), path);
+    assert(!html.includes("DİJİTAL ÜRÜN MAĞAZASI"), path);
+    assert(html.includes('data-session-visible="guest"'), path);
+    assert(html.includes('data-session-visible="signed" hidden'), path);
+  }
+});
+test("direct registration requests keep their account route, show a neutral shell and stay unindexed", async () => {
+  const response = await fetch(f.origin + "/hesabim?islem=kayit");
+  const html = await response.text();
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("x-robots-tag"), "noindex, nofollow");
+  assert(html.includes("<h1>Kayıt Ol</h1>"));
+  assert(!html.includes("Senin için<br/>yeni bir başlangıç."));
+  assert(html.includes("home-trust-template"));
+});

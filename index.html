@@ -23,7 +23,7 @@
     <meta property="og:type" content="website" />
     <meta
       property="og:title"
-      content="Zentra Store — Dijital dünyana seviye atlat."
+      content="Zentra Store — Android ve iOS ürünleri."
     />
     <meta
       property="og:description"
@@ -46,10 +46,10 @@
       crossorigin
     />
     <link rel="stylesheet" href="/public/assets/fonts/fonts.css" />
-    <link rel="stylesheet" href="/public/css/zentra.css?v=92" />
-    <title>Zentra Store — Dijital deneyimini yükselt.</title>
-    <script type="module" src="/public/js/app/store.js?v=92"></script>
-    <link rel="stylesheet" href="/public/css/device.css?v=92" />
+    <link rel="stylesheet" href="/public/css/zentra.css?v=93" />
+    <title>Zentra Store — Android ve iOS ürünleri.</title>
+    <script type="module" src="/public/js/app/store.js?v=93"></script>
+    <link rel="stylesheet" href="/public/css/device.css?v=93" />
   </head>
   <body>
     <a class="skip-link" href="#main">İçeriğe geç</a>
@@ -75,10 +75,52 @@
             width="192"
             height="192"
             draggable="false"
-          /><span class="brand-text" aria-hidden="true"
-            >ZENTRA STORE<small>DİJİTAL ÜRÜN MAĞAZASI</small></span
+          /><span class="brand-text brand-wordmark" aria-hidden="true"
+            >ZENTRA STORE</span
           ></a
         >
+
+        <div class="header-actions" aria-label="Hesap işlemleri">
+          <div class="session-actions" data-session-visible="guest">
+            <a
+              class="header-auth-link"
+              href="/hesabim?islem=giris"
+              data-nav
+              data-store-nav="login"
+              >Giriş Yap</a
+            >
+            <a
+              class="header-auth-link primary"
+              href="/hesabim?islem=kayit"
+              data-nav
+              data-store-nav="register"
+              >Kayıt Ol</a
+            >
+          </div>
+          <div class="session-actions" data-session-visible="signed" hidden>
+            <a
+              class="header-profile icon-button"
+              href="/hesabim"
+              data-nav
+              data-store-nav="account"
+              aria-label="Hesabım"
+              ><span data-icon="user" aria-hidden="true"></span
+            ></a>
+            <a
+              class="header-cart icon-button"
+              href="/sepet"
+              data-nav
+              data-store-nav="cart"
+              aria-label="Sepetim"
+              ><span data-icon="bag" aria-hidden="true"></span
+              ><span class="cart-count" id="cart-count" data-cart-count
+                >0</span
+              ></a
+            >
+          </div>
+        </div>
+      </div>
+      <div class="container header-search">
         <form class="search" id="search-form" role="search">
           <label class="sr-only" for="search-input">Ürün ara</label
           ><svg
@@ -101,55 +143,6 @@
           /><kbd>⌘ K</kbd>
           <div id="search-suggestions" class="search-suggestions" hidden></div>
         </form>
-        <div class="header-actions">
-          <a
-            href="/favoriler"
-            data-nav
-            class="icon-button desktop-favorite"
-            aria-label="Favorilerim"
-            ><svg
-              class="icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.7"
-              aria-hidden="true"
-            >
-              <path
-                d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"
-              /></svg></a
-          ><a href="/hesabim" class="header-account" data-nav
-            ><span class="avatar" id="header-avatar" aria-hidden="true"
-              ><svg
-                class="icon"
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.7"
-              >
-                <path
-                  d="M20 21v-2a6 6 0 0 0-6-6h-4a6 6 0 0 0-6 6v2M16 5a4 4 0 1 1-8 0 4 4 0 0 1 8 0"
-                /></svg></span
-            ><span
-              ><small>İyi ki geldin.</small
-              ><b id="header-name">Giriş yap</b></span
-            ></a
-          ><a href="/sepet" class="header-cart" data-nav aria-label="Sepetim"
-            ><svg
-              class="icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              aria-hidden="true"
-            >
-              <path d="M5 7h14l2 14H3ZM9 8V6a3 3 0 0 1 6 0v2" /></svg
-            ><span class="cart-count" id="cart-count">0</span
-            ><span class="desktop-label">Sepetim</span></a
-          >
-        </div>
       </div>
       <nav class="category-nav container" aria-label="Ürün kategorileri">
         <a href="/magaza" data-nav class="all-categories"
@@ -181,54 +174,7 @@
       aria-hidden="true"
     ></div>
     <main id="main" class="container main-content" tabindex="-1">
-      <section class="hero">
-        <div class="hero-copy">
-          <span class="hero-kicker"
-            ><span></span> ZENTRA STORE · RESMÎ MAĞAZA</span
-          >
-          <h1>Seçimini yap.<br />Deneyimini <em>yükselt.</em></h1>
-          <p>
-            Android ve iOS için dijital ürünler.<br />Paketini seç, siparişini
-            tek yerden takip et.
-          </p>
-          <div class="hero-actions">
-            <a class="button hero-cta" href="/magaza" data-nav
-              >Ürünleri keşfet
-              <svg
-                class="icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.7"
-                aria-hidden="true"
-              >
-                <path d="M4 12h16m-6-6 6 6-6 6" /></svg></a
-            ><a class="hero-secondary" href="/destek" data-nav
-              >Yardım &amp; destek</a
-            >
-          </div>
-          <div class="hero-note">
-            <span>✓</span> Sunucuda doğrulama <span>✓</span> Hesabından sipariş
-            takibi
-          </div>
-        </div>
-        <div class="hero-art">
-          <figure class="hero-brand-frame">
-            <img
-              class="hero-brand-image"
-              src="/public/assets/images/zentra-mark.webp"
-              alt="Zentra Store özgün marka görseli"
-              width="1254"
-              height="1254"
-              fetchpriority="high"
-              draggable="false"
-            />
-            <figcaption>
-              ANDROID <span>·</span> iOS <span>·</span> DİJİTAL ÜRÜNLER
-            </figcaption>
-          </figure>
-        </div>
-      </section>
+      <h1 class="sr-only">Zentra Store</h1>
       <section class="trust-strip" aria-label="Mağaza özellikleri">
         <div>
           <svg
@@ -293,8 +239,8 @@
               width="192"
               height="192"
               draggable="false"
-            /><span class="brand-text" aria-hidden="true"
-              >ZENTRA STORE<small>DİJİTAL ÜRÜN MAĞAZASI</small></span
+            /><span class="brand-text brand-wordmark" aria-hidden="true"
+              >ZENTRA STORE</span
             ></a
           >
           <p>
@@ -344,19 +290,49 @@
         <span class="footer-secure">◇ HTTPS ile güvenli bağlantı</span>
       </div>
     </footer>
-    <nav class="bottom-nav" aria-label="Mobil gezinme">
-      <a href="/" data-nav data-tab="home"
-        ><span data-icon="home"></span><span>Ana sayfa</span></a
-      ><a href="/magaza" data-nav data-tab="catalog"
-        ><span data-icon="grid"></span><span>Keşfet</span></a
-      ><a href="/sepet" data-nav data-tab="cart"
-        ><span data-icon="bag"></span
-        ><span>Sepetim <b id="mobile-cart-count">0</b></span></a
-      ><a href="/siparisler" data-nav data-tab="orders"
-        ><span data-icon="box"></span><span>Siparişler</span></a
-      ><a href="/hesabim" data-nav data-tab="account"
-        ><span data-icon="user"></span><span>Hesabım</span></a
-      >
+    <nav class="bottom-nav" aria-label="Mobil gezinme" data-session="guest">
+      <div class="bottom-session" data-session-visible="guest">
+        <a href="/" data-nav data-store-nav="home"
+          ><span data-icon="home" aria-hidden="true"></span
+          ><span>Anasayfa</span></a
+        >
+        <a href="/magaza" data-nav data-store-nav="products"
+          ><span data-icon="grid" aria-hidden="true"></span
+          ><span>Keşfet</span></a
+        >
+        <a href="/hesabim?islem=giris" data-nav data-store-nav="login"
+          ><span data-icon="user" aria-hidden="true"></span
+          ><span>Giriş Yap</span></a
+        >
+        <a href="/hesabim?islem=kayit" data-nav data-store-nav="register"
+          ><span data-icon="user-add" aria-hidden="true"></span
+          ><span>Kayıt Ol</span></a
+        >
+      </div>
+      <div class="bottom-session" data-session-visible="signed" hidden>
+        <a href="/" data-nav data-store-nav="home"
+          ><span data-icon="home" aria-hidden="true"></span
+          ><span>Anasayfa</span></a
+        >
+        <a href="/magaza" data-nav data-store-nav="products"
+          ><span data-icon="grid" aria-hidden="true"></span
+          ><span>Ürünler</span></a
+        >
+        <a href="/sepet" data-nav data-store-nav="cart"
+          ><span data-icon="bag" aria-hidden="true"></span
+          ><span
+            >Sepetim <b id="mobile-cart-count" data-cart-count>0</b></span
+          ></a
+        >
+        <a href="/siparisler" data-nav data-store-nav="orders"
+          ><span data-icon="box" aria-hidden="true"></span
+          ><span>Siparişlerim</span></a
+        >
+        <a href="/hesabim" data-nav data-store-nav="account"
+          ><span data-icon="user" aria-hidden="true"></span
+          ><span>Hesabım</span></a
+        >
+      </div>
     </nav>
     <div
       id="toasts"

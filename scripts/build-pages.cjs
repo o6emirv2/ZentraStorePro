@@ -6,6 +6,7 @@ const {
   meta,
   productMarkup,
   listingMarkup,
+  loadingMarkup,
 } = require("../server/core/storefrontSeo");
 const root = path.resolve(__dirname, "..");
 const output = path.join(root, "dist-pages");
@@ -82,7 +83,12 @@ for (const [route, title] of Object.entries({
   kuponlar: "Kuponlarım",
   destek: "Yardım ve destek",
 }))
-  writePage(route, template, title, route !== "destek");
+  writePage(
+    route,
+    route === "destek" ? template : loadingMarkup(template, title),
+    title,
+    route !== "destek",
+  );
 // GitHub Pages returns HTTP 404 for newly created dynamic routes until the next
 // static build. The app still reads the requested path and the current API data.
 fs.writeFileSync(

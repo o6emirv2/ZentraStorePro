@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "checkedAt": 1794592010225,
-  "sourceDigest": "74e9d91444270c2962226fead36c8260351c93b4f4623a128c4db255c97054b9",
+  "checkedAt": 1794605152131,
+  "sourceDigest": "99f14599407f61024e5c7ef76eea40d2510f9ec61457745df86f2f5982368ce4",
   "source": {
     "exitCode": 0
   },
@@ -13,9 +13,9 @@
   },
   "regression": {
     "exitCode": 0,
-    "passed": 330,
+    "passed": 346,
     "failed": 0,
-    "total": 330,
+    "total": 346,
     "skipped": 0,
     "suites": {
       "accessibility-contrast-regression.cjs": {
@@ -304,6 +304,17 @@
         "suites": 0,
         "verified": true
       },
+      "navigation-regression.cjs": {
+        "tests": 8,
+        "failed": 0,
+        "passed": 8,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "topLevel": 8,
+        "suites": 0,
+        "verified": true
+      },
       "product-creation-regression.cjs": {
         "tests": 18,
         "failed": 0,
@@ -349,6 +360,17 @@
         "verified": true
       },
       "rebuild-http-regression.cjs": {
+        "tests": 17,
+        "failed": 0,
+        "passed": 17,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "topLevel": 17,
+        "suites": 0,
+        "verified": true
+      },
+      "rebuild-model-regression.cjs": {
         "tests": 15,
         "failed": 0,
         "passed": 15,
@@ -356,17 +378,6 @@
         "skipped": 0,
         "todo": 0,
         "topLevel": 15,
-        "suites": 0,
-        "verified": true
-      },
-      "rebuild-model-regression.cjs": {
-        "tests": 12,
-        "failed": 0,
-        "passed": 12,
-        "cancelled": 0,
-        "skipped": 0,
-        "todo": 0,
-        "topLevel": 12,
         "suites": 0,
         "verified": true
       },
@@ -422,6 +433,17 @@
         "skipped": 0,
         "todo": 0,
         "topLevel": 5,
+        "suites": 0,
+        "verified": true
+      },
+      "session-view-regression.cjs": {
+        "tests": 3,
+        "failed": 0,
+        "passed": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "topLevel": 3,
         "suites": 0,
         "verified": true
       },
@@ -484,7 +506,7 @@
   },
   "dependencies": {
     "verified": true,
-    "checkedAt": 1794592030577,
+    "checkedAt": 1794605169888,
     "info": 0,
     "low": 0,
     "moderate": 0,

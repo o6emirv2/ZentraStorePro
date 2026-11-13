@@ -98,3 +98,35 @@ export function priceCart(items, catalog) {
     totalKurus: lines.reduce((s, x) => s + x.totalKurus, 0),
   };
 }
+
+export function checkoutState({
+  signedIn = false,
+  busy = false,
+  invalidItems = false,
+  payment = "wallet",
+  telegramEnabled = true,
+} = {}) {
+  if (busy)
+    return {
+      disabled: true,
+      label: "Sipariş doğrulanıyor…",
+      message: "İşlem sonucu bekleniyor. Aynı siparişi yeniden göndermeyin.",
+    };
+  if (!signedIn)
+    return { disabled: false, label: "Giriş yap ve devam et", message: "" };
+  if (invalidItems)
+    return {
+      disabled: true,
+      label: "Sepetini kontrol et",
+      message:
+        "Artık satışta olmayan ürünleri kaldırdıktan sonra devam edebilirsin.",
+    };
+  if (payment === "telegram" && telegramEnabled === false)
+    return {
+      disabled: true,
+      label: "Telegram siparişleri kapalı",
+      message:
+        "Telegram sipariş kanalı şu an kapalı. Başka bir ödeme yöntemi seçebilir veya destek ekibine ulaşabilirsin.",
+    };
+  return { disabled: false, label: "Siparişi oluştur", message: "" };
+}

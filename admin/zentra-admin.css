@@ -1007,9 +1007,6 @@
   }
 }
 
-.gate-brand .brand-text small {
-  color: #bdcbed;
-}
 .admin-sidebar .brand-image {
   width: 50px;
   height: 50px;
@@ -1017,7 +1014,4 @@
 }
 .admin-sidebar .brand-text {
   font-size: 15px;
-}
-.admin-sidebar .brand-text small {
-  font-size: 7px;
 }

@@ -1,4 +1,4 @@
-import { imageVariants } from "./images.mjs?v=92";
+import { imageVariants } from "./images.mjs?v=93";
 export const escape = (value = "") =>
   String(value ?? "").replace(
     /[&<>"']/g,
@@ -27,6 +27,8 @@ const paths = {
   grid: "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z",
   search: "m21 21-4.8-4.8M19 10.5a8.5 8.5 0 1 1-17 0 8.5 8.5 0 0 1 17 0",
   bag: "M5 7h14l2 14H3ZM9 8V6a3 3 0 0 1 6 0v2",
+  "user-add":
+    "M15 21v-2a5 5 0 0 0-5-5H8a5 5 0 0 0-5 5v2M13 6a4 4 0 1 1-8 0 4 4 0 0 1 8 0M19 8v6M16 11h6",
   user: "M20 21v-2a6 6 0 0 0-6-6h-4a6 6 0 0 0-6 6v2M16 5a4 4 0 1 1-8 0 4 4 0 0 1 8 0",
   heart:
     "M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z",
@@ -57,7 +59,7 @@ const paths = {
 export const icon = (name, cls = "") =>
   `<svg class="icon ${escape(cls)}" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${paths[name] || paths.box}"/></svg>`;
 export const brand = () =>
-  '<a class="brand" href="/" aria-label="Zentra Store ana sayfa"><img class="brand-image" src="/public/assets/images/apple-touch-icon.png" alt="Zentra Store" width="192" height="192" draggable="false"/><span class="brand-text" aria-hidden="true">ZENTRA STORE<small>DİJİTAL ÜRÜN MAĞAZASI</small></span></a>';
+  '<a class="brand" href="/" aria-label="Zentra Store ana sayfa"><img class="brand-image" src="/public/assets/images/apple-touch-icon.png" alt="Zentra Store" width="192" height="192" draggable="false"/><span class="brand-text brand-wordmark" aria-hidden="true">ZENTRA STORE</span></a>';
 export async function copyText(value) {
   if (!navigator.clipboard?.writeText)
     throw new Error("Bu tarayıcıda güvenli kopyalama kullanılamıyor.");

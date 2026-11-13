@@ -74,8 +74,6 @@ for (const file of files) {
         "search-suggestions",
         "cart-count",
         "mobile-cart-count",
-        "header-avatar",
-        "header-name",
         "footer-social",
         "toasts",
       ]) {

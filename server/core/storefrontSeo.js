@@ -74,11 +74,9 @@ function productMarkup(source, p, canonical) {
       url: canonical,
     },
   };
-  const hero =
-      /<section class="hero">[\s\S]*?<\/section>/.exec(html)?.[0] || "",
-    trust =
-      /<section class="trust-strip"[\s\S]*?<\/section>/.exec(html)?.[0] || "";
-  const summary = `<main id="main" class="container main-content" tabindex="-1"><div class="breadcrumb"><a href="/">Ana sayfa</a><span>/</span><span>${esc(p.name)}</span></div><section class="detail-grid"><div class="detail-visual"><img src="${esc(imageVariants[p.image] || p.image)}" alt="${esc(p.name)}" width="600" height="600" fetchpriority="high"/></div><div class="detail-info"><span class="eyebrow">${esc(p.platform)} · ${esc(p.game)}</span><h1>${esc(p.name)}</h1><p class="detail-description">${esc(p.description)}</p><p class="detail-price">${price.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}</p><p class="fine-print">Paket seçenekleri ve güncel stok kontrol ediliyor. Kesin fiyat ve stok sipariş sırasında doğrulanır.</p><div class="skeleton" style="height:70px;margin-top:20px"></div></div></section></main><template id="home-hero-template">${hero}</template><template id="home-trust-template">${trust}</template>`;
+  const trust =
+    /<section class="trust-strip"[\s\S]*?<\/section>/.exec(html)?.[0] || "";
+  const summary = `<main id="main" class="container main-content" tabindex="-1"><div class="breadcrumb"><a href="/">Ana sayfa</a><span>/</span><span>${esc(p.name)}</span></div><section class="detail-grid"><div class="detail-visual"><img src="${esc(imageVariants[p.image] || p.image)}" alt="${esc(p.name)}" width="600" height="600" fetchpriority="high"/></div><div class="detail-info"><span class="eyebrow">${esc(p.platform)} · ${esc(p.game)}</span><h1>${esc(p.name)}</h1><p class="detail-description">${esc(p.description)}</p><p class="detail-price">${price.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}</p><p class="fine-print">Paket seçenekleri ve güncel stok kontrol ediliyor. Kesin fiyat ve stok sipariş sırasında doğrulanır.</p><div class="skeleton" style="height:70px;margin-top:20px"></div></div></section></main><template id="home-trust-template">${trust}</template>`;
   return source
     .replace(/<main\b(?=[^>]*\bid="main")[^>]*>[\s\S]*?<\/main>/, summary)
     .replace(
@@ -87,14 +85,20 @@ function productMarkup(source, p, canonical) {
     );
 }
 function listingMarkup(source, title, products) {
-  const hero =
-    /<section class="hero">[\s\S]*?<\/section>/.exec(html)?.[0] || "";
   const trust =
     /<section class="trust-strip"[\s\S]*?<\/section>/.exec(html)?.[0] || "";
-  const summary = `<main id="main" class="container main-content" tabindex="-1"><section class="catalog-section"><div class="section-heading"><h1>${esc(title)}</h1><span>${products.length} ürün</span></div><div class="product-grid">${products.map((p) => `<article class="product-card"><a class="product-media" href="/urun/${esc(p.id)}" data-nav><img src="${esc(imageVariants[p.image] || p.image)}" alt="${esc(p.name)}" width="320" height="280" loading="lazy"/></a><div class="product-body"><h2><a href="/urun/${esc(p.id)}" data-nav>${esc(p.name)}</a></h2><p>${esc(p.description)}</p><strong>${(Math.min(...p.plans.map((x) => x.priceKurus)) / 100).toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}</strong></div></article>`).join("")}</div></section></main><template id="home-hero-template">${hero}</template><template id="home-trust-template">${trust}</template>`;
+  const summary = `<main id="main" class="container main-content" tabindex="-1"><section class="catalog-section"><div class="section-heading"><h1>${esc(title)}</h1><span>${products.length} ürün</span></div><div class="product-grid">${products.map((p) => `<article class="product-card"><a class="product-media" href="/urun/${esc(p.id)}" data-nav><img src="${esc(imageVariants[p.image] || p.image)}" alt="${esc(p.name)}" width="320" height="280" loading="lazy"/></a><div class="product-body"><h2><a href="/urun/${esc(p.id)}" data-nav>${esc(p.name)}</a></h2><p>${esc(p.description)}</p><strong>${(Math.min(...p.plans.map((x) => x.priceKurus)) / 100).toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}</strong></div></article>`).join("")}</div></section></main><template id="home-trust-template">${trust}</template>`;
   return source.replace(
     /<main\b(?=[^>]*\bid="main")[^>]*>[\s\S]*?<\/main>/,
     summary,
+  );
+}
+function loadingMarkup(source, title) {
+  const trust =
+    /<section class="trust-strip"[\s\S]*?<\/section>/.exec(html)?.[0] || "";
+  return source.replace(
+    /<main\b(?=[^>]*\bid="main")[^>]*>[\s\S]*?<\/main>/,
+    `<main id="main" class="container main-content" tabindex="-1"><section class="auth-page"><div class="auth-form-panel"><h1>${esc(title)}</h1><p>Güvenli hesap bağlantısı hazırlanıyor…</p><span class="spinner" aria-label="Yükleniyor"></span></div></section></main><template id="home-trust-template">${trust}</template>`,
   );
 }
 async function servePage(req, res, next) {
@@ -102,7 +106,7 @@ async function servePage(req, res, next) {
     res.setHeader("Cache-Control", "no-cache, max-age=0, must-revalidate");
     let source = html,
       canonical = base() + (req.path === "/index.html" ? "/" : req.path),
-      title = "Dijital deneyimini yükselt.",
+      title = "Android ve iOS ürünleri",
       description =
         "Android ve iOS için dijital ürünler. Güvenli hesap, sunucuda doğrulanan sipariş ve Telegram desteği.";
     if (
@@ -117,6 +121,18 @@ async function servePage(req, res, next) {
       req.query.q
     ) {
       res.setHeader("X-Robots-Tag", "noindex, nofollow");
+    }
+    const privateTitles = {
+      "/sepet": "Sepetim",
+      "/hesabim": req.query.islem === "kayit" ? "Kayıt Ol" : "Giriş Yap",
+      "/siparisler": "Siparişlerim",
+      "/favoriler": "Favorilerim",
+      "/kuponlar": "Kuponlarım",
+      "/bildirimler": "Bildirimler",
+    };
+    if (privateTitles[req.path]) {
+      title = privateTitles[req.path];
+      source = loadingMarkup(source, title);
     }
     if (req.params.productId) {
       const catalog = await getEffectiveCatalog({ includeInactive: false });
@@ -208,4 +224,5 @@ module.exports = {
   meta,
   productMarkup,
   listingMarkup,
+  loadingMarkup,
 };
