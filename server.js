@@ -48,25 +48,9 @@ function escapeHtml(value = '') {
 }
 
 function adminHandoffPage({ success = false, message = '', code = '' } = {}) {
-  const destination = success ? '/admin/' : `${env.canonicalOrigin || env.publicBaseUrl}/admin/index.html`;
-  const safeMessage = escapeHtml(message || (success
-    ? 'Güvenli yönetici oturumu doğrulandı. Yönetim merkezi açılıyor.'
-    : 'Güvenli yönetici geçişi tamamlanamadı. Lütfen son doğrulama adımını yeniden deneyin.'));
-  const safeCode = escapeHtml(code);
-  return `<!doctype html><html lang="tr"><head><meta charset="utf-8" />\n`
-    + `<meta name="viewport" content="width=device-width, initial-scale=0.8, minimum-scale=0.8, maximum-scale=0.8, viewport-fit=cover" />\n`
-    + `<meta name="color-scheme" content="dark" />\n`
-    + `<meta name="theme-color" content="#070B16" />\n`
-    + `<meta name="robots" content="noindex, nofollow, noarchive" />\n`
-    + (success ? '<meta http-equiv="refresh" content="0;url=/admin/" />\n' : '')
-    + '<title>ZENTRA STORE | Güvenli Yönetici Oturumu</title>\n'
-    + '<link rel="stylesheet" href="/public/css/admin-handoff.css?v=zentra-ui-v90r1" /><link rel="stylesheet" href="/public/css/interaction-guard.css?v=zentra-ui-v90r1" /><link rel="stylesheet" href="/public/css/app-system.css?v=zentra-ui-v90r1" /><link rel="stylesheet" href="/public/css/interface.css?v=zentra-ui-v90r1" /></head><body>'
-    + '<main class="gate"><div class="brand"><img src="/public/assets/images/zentra-mark.webp?v=brand-v67" alt="" /><span><b>ZENTRA STORE</b><small>GÜVENLİ YÖNETİCİ GEÇİŞİ</small></span></div>'
-    + `<span class="status ${success ? 'is-success' : 'is-error'}" aria-hidden="true">${success ? '✓' : '!'}</span><span class="eyebrow">${success ? 'OTURUM DOĞRULANDI' : 'ERİŞİM DENETİMİ'}</span>`
-    + `<h1>${success ? 'Yönetim merkezi açılıyor' : 'Güvenli geçiş tamamlanamadı'}</h1>`
-    + `<p>${safeMessage}</p><a href="${escapeHtml(destination)}">${success ? 'Yönetim paneline devam et' : 'Yönetici girişine dön'} <span aria-hidden="true">→</span></a>`
-    + (safeCode ? `<small>İşlem kodu: ${safeCode}</small>` : '')
-    + '</main><script type="module" src="/public/js/ui/interaction-guard-entry.js?v=zentra-ui-v90r1"></script></body></html>';
+  const destination = success ? '/admin/' : `${env.canonicalOrigin || env.publicBaseUrl}/admin/`;
+  const title = success ? 'Yönetim merkezi açılıyor' : 'Güvenli geçiş tamamlanamadı';
+  return `<!doctype html><html lang="tr"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" /><meta name="robots" content="noindex,nofollow,noarchive" />${success ? '<meta http-equiv="refresh" content="0;url=/admin/" />' : ''}<title>Zentra Store | Güvenli geçiş</title><link rel="stylesheet" href="/public/assets/fonts/fonts.css" /><link rel="stylesheet" href="/public/css/zentra.css?v=92" /><link rel="stylesheet" href="/public/css/device.css?v=92" /><script type="module" src="/public/js/app/device.js?v=92"></script></head><body><main class="container main-content"><section class="panel"><a class="brand" href="/"><img class="brand-image" src="/public/assets/images/apple-touch-icon.png" alt="Zentra Store" width="192" height="192" draggable="false"/><span class="brand-text" aria-hidden="true">ZENTRA STORE<small>DİJİTAL ÜRÜN MAĞAZASI</small></span></a><span class="eyebrow">ZENTRA STORE · YÖNETİCİ ERİŞİMİ</span><h1>${title}</h1><p class="fine-print">${escapeHtml(message || (success ? 'Yönetici oturumun doğrulandı.' : 'Giriş adımlarını yeniden deneyin.'))}</p><a class="button primary" href="${escapeHtml(destination)}">${success ? 'Yönetim merkezine devam et' : 'Yeniden giriş yap'}</a>${code ? `<p class="fine-print">İşlem kodu: ${escapeHtml(code)}</p>` : ''}</section></main></body></html>`;
 }
 
 app.disable('x-powered-by');
@@ -205,8 +189,6 @@ app.post('/admin/session/handoff', adminAuthLimiter, express.urlencoded({
   }
 });
 
-// Exact server-to-server endpoint, before browser Origin/App Check/JSON middleware.
-// All other payment endpoints retain the normal browser and authentication guards.
 app.use('/api', cors(corsOptions));
 app.options('/api/*', cors(corsOptions));
 app.use('/api', apiLimiter);
@@ -214,6 +196,7 @@ app.use('/api', apiRequestGuard);
 app.use('/api', appCheckGuard);
 app.use('/api/admin/store/products/bulk', express.json({ limit: '1mb', strict: true, inflate: false }));
 app.post('/api/admin/store/products', express.json({ limit: '2mb', strict: true, inflate: false }));
+app.patch('/api/admin/store/products/:productId', express.json({ limit: '2mb', strict: true, inflate: false }));
 app.use('/api', express.json({ limit: '256kb', strict: true, inflate: false }));
 app.use('/api', bodySafetyGuard);
 app.use('/api', apiClientGuard);
@@ -278,29 +261,22 @@ app.get('/admin', (req, res, next) => req.path === '/admin' ? res.redirect(302, 
 app.get(['/admin/', '/admin/index.html'], (_req, res) => { res.setHeader('Cache-Control', 'no-store, max-age=0'); return res.sendFile(path.join(root, 'admin', 'index.html')); });
 app.get('/admin/admin.html', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, max-age=0');
-  return req.query.view === 'v90' ? res.sendFile(path.join(root, 'admin', 'admin.html')) : res.redirect(302, '/admin/');
+  return res.redirect(302, '/admin/');
 });
 app.get(['/admin/session/handoff', '/admin/session/handoff/'], (_req, res) => res.redirect(302, '/admin/'));
-const adminAssetAllowlist = new Set([
-  'admin-auth.js', 'admin-core.js', 'admin-dashboard.css', 'admin-dashboard.js', 'promo-codes.js',
-  'admin-dialogs.js', 'admin-links.js', 'admin-maintenance.js', 'admin-audit.js', 'admin-security.js', 'admin-operations.css',
-  'admin-gate.css', 'admin-gate.js', 'product-image-upload.js', 'admin-browser-session.js', 'admin-entry.js', 'admin-legacy-entry.js'
-]);
+const adminAssetAllowlist = new Set(['admin-auth.js', 'admin-core.js', 'admin-browser-session.js', 'product-image-upload.js', 'portal.js', 'workspace.js', 'metrics.mjs', 'zentra-admin.css']);
 app.get('/admin/:asset', (req, res, next) => {
   const asset = String(req.params.asset || '');
   if (!adminAssetAllowlist.has(asset)) return next();
   return sendVersionedFile(req, res, path.join(root, 'admin', asset));
 });
-app.get('/style.css', (req, res) => sendVersionedFile(req, res, path.join(root, 'style.css')));
-app.get('/script.js', (req, res) => sendVersionedFile(req, res, path.join(root, 'script.js')));
 app.get(['/favicon.ico', '/apple-touch-icon.png'], (req, res) => {
   const filename = req.path.includes('apple') ? 'apple-touch-icon.png' : 'favicon.ico';
   res.sendFile(path.join(root, 'public', 'assets', 'images', filename), { maxAge: staticOptions.maxAge });
 });
-app.get(['/', '/index.html'], (_req, res) => {
-  res.setHeader('Cache-Control', 'no-cache, max-age=0, must-revalidate');
-  return res.sendFile(path.join(root, 'index.html'));
-});
+app.get(['/', '/index.html', '/magaza', '/kategori/:category', '/urun/:productId', '/sepet', '/hesabim', '/siparisler', '/favoriler', '/destek', '/kuponlar', '/bildirimler'], require('./server/core/storefrontSeo').servePage);
+app.get('/robots.txt', require('./server/core/storefrontSeo').robots);
+app.get('/sitemap.xml', require('./server/core/storefrontSeo').sitemap);
 
 
 app.use('/api', (_req, res) => res.status(404).json({ ok: false, error: 'API_ROUTE_NOT_FOUND' }));
@@ -348,6 +324,7 @@ function startServer() {
 
   startRestockWorker();
   startMaintenanceWorker();
+  require('./server/core/telegramNotifications').start();
   process.once('SIGTERM', () => shutdown('SIGTERM'));
   process.once('SIGINT', () => shutdown('SIGINT'));
   return server;
@@ -356,6 +333,7 @@ function startServer() {
 function shutdown(signal) {
   stopRestockWorker();
   stopMaintenanceWorker();
+  require('./server/core/telegramNotifications').stop();
   if (!server) return;
   server.close(() => process.exit(process.exitCode || 0));
   server.closeIdleConnections?.();

@@ -1,9 +1,14 @@
 services:
   - type: web
-    name: emirhan-siye
+    name: playmatrix
     runtime: node
+    repo: https://github.com/o6emirv2/ZentraStorePro
+    branch: main
+    region: oregon
+    plan: free
+    autoDeployTrigger: checksPass
     numInstances: 1
-    buildCommand: npm ci --omit=dev --no-fund && npm run build
+    buildCommand: npm ci --omit=dev --ignore-scripts --no-fund && npm run build
     startCommand: node server.js
     healthCheckPath: /readyz
     envVars:
@@ -22,7 +27,17 @@ services:
       - key: PUBLIC_FIREBASE_CONFIG
         sync: false
       - key: APP_CHECK_MODE
-        value: monitor
+        sync: false
+      - key: PUBLIC_FIREBASE_APP_CHECK_SITE_KEY
+        sync: false
+      - key: SECURITY_CSP_STRICT
+        value: "1"
+      - key: MAINTENANCE_IDLE_POLL_MS
+        value: "60000"
+      - key: RESTOCK_IDLE_POLL_MS
+        value: "60000"
+      - key: TELEGRAM_NOTIFICATIONS_ENABLED
+        value: "false"
       - key: ADMIN_TRANSIENT_STORE
         value: firestore
       - key: RATE_LIMIT_STORE
