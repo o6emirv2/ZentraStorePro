@@ -20,7 +20,7 @@ const productFields = { name: text(80), platform: text(20), game: text(30), cate
 const productCreate = object({ ...productFields, imageUpload: object({ data: text(MAX_IMAGE_BASE64) }), id: text(80), inventoryType: text(20), fulfillmentMode: text(30), plans: list(object(planFields), 12) });
 const planMap = (value) => !!value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length <= 12
   && Object.entries(value).every(([key, entry]) => /^[a-z0-9-]{1,40}$/.test(key) && object(planFields)(entry));
-const productPatch = object({ ...productFields, plans: planMap });
+const productPatch = object({ ...productFields, imageUpload: object({ data: text(MAX_IMAGE_BASE64) }), plans: planMap });
 const link = object({ id: text(80), platform: text(20), title: text(48), description: text(80), url: text(500), enabled: boolean, showOnHome: boolean });
 const promotion = object({ type: text(20), title: text(100), value: integer(1, 100000000), minimumSubtotalKurus: integer(0, 100000000),
   maxDiscountKurus: integer(0, 100000000), startsAt: date, endsAt: date, usageLimit: integer(0, 1000000), perUserLimit: integer(1, 100),
@@ -33,6 +33,7 @@ const content = object({ maintenance: boolean,
   support: object({ telegramUsername: text(80) }), home: object({ title: text(100), message: text(500) }),
   categoryVisibility: object(Object.fromEntries(CATEGORY_VISIBILITY_KEYS.map((key) => [key, boolean]))), quickLinks: list(link, 16) });
 const CONTRACTS = [
+  ['PUT', /^\/api\/admin\/store\/experience$/, object({ expectedRevision: integer(0, 1000000000), categories: list(object({ id: text(60), name: text(60), description: text(180), enabled: boolean, productIds: list(text(80), 150) }), 40), banners: list(object({ id: text(60), title: text(80), message: text(240), image: text(300), href: text(180), startsAt: integer(0, 8640000000000000), endsAt: integer(0, 8640000000000000), enabled: boolean }), 12) })],
   ['POST', /^\/api\/admin\/store\/maintenance\/preview$/, object({ operation: text(40), idempotencyKey: text(100) })],
   ['POST', /^\/api\/admin\/store\/maintenance\/[^/]+\/(?:orders|audit)\/confirm$/, object({ confirmation: text(20) })],
   ['POST', /^\/api\/profile\/update$/, object({ firstName: text(50), lastName: text(50), username: text(20), birthDate: text(10) })],

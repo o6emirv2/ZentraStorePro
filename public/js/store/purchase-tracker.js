@@ -22,7 +22,7 @@ export function createPurchaseTracker({ api, userId, storage } = {}) {
     if (!uid) return null;
     if (current && validAttempt(current, uid)) return current;
     try {
-      const raw = storage.getItem(STORAGE_KEY);
+      const raw = storage.getItem(`${STORAGE_KEY}:${uid}`) || storage.getItem(STORAGE_KEY);
       if (!raw || raw.length > 12_000) return null;
       const saved = JSON.parse(raw);
       if (validAttempt(saved, uid)) current = saved;
@@ -41,17 +41,17 @@ export function createPurchaseTracker({ api, userId, storage } = {}) {
     };
     if (!validAttempt(attempt, attempt.uid)) throw new Error('Invalid purchase attempt');
     current = attempt;
-    try { storage.setItem(STORAGE_KEY, JSON.stringify(attempt)); } catch (_) {}
+    try { storage.setItem(`${STORAGE_KEY}:${attempt.uid}`, JSON.stringify(attempt)); } catch (_) {}
     return attempt;
   }
   function finish(attempt) {
     if (current?.body.idempotencyKey !== attempt?.body.idempotencyKey) return;
     current = null;
-    try { storage.removeItem(STORAGE_KEY); } catch (_) {}
+    try { storage.removeItem(`${STORAGE_KEY}:${attempt?.uid || String(userId() || "")}`); storage.removeItem(STORAGE_KEY); } catch (_) {}
   }
   function clear() {
     current = null;
-    try { storage.removeItem(STORAGE_KEY); } catch (_) {}
+    try { storage.removeItem(`${STORAGE_KEY}:${String(userId() || "")}`); } catch (_) {}
   }
   async function verify(attempt = pending()) {
     if (!attempt || attempt.uid !== String(userId() || '')) return null;

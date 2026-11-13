@@ -275,6 +275,19 @@ function telegramUrl(message = '', telegramUsername = STORE_CATALOG.telegramUser
   return `https://t.me/${username}?text=${encodeURIComponent(String(message || ''))}`;
 }
 
+function publicPaymentState(data, channel) {
+  if (channel === 'unknown') return 'unverified';
+  if (channel === 'wallet') {
+    const refunded = (data.walletRefundedAt && data.walletRefundedKurus === data.totalKurus) || data.status === 'refunded';
+    return refunded ? 'refunded' : 'captured';
+  }
+  if (data.manualRefund?.verifiedAt) return 'refunded';
+  if (data.approvedAt) return 'confirmed_manually';
+  if (data.status === 'cancelled') return 'not_captured';
+  if (data.status === 'payment_rejected') return 'rejected';
+  return 'pending';
+}
+
 function publicOrder(data = {}, id = '') {
   const channel = paymentChannel(data);
   const delivery = data.delivery && typeof data.delivery === 'object' ? data.delivery : {};
@@ -307,7 +320,7 @@ function publicOrder(data = {}, id = '') {
       discountKurus: clampBalance(data.promotion.discountKurus)
     } : null,
     totalKurus: clampBalance(data.totalKurus),
-    paymentState: channel === 'wallet' ? data.status === 'refunded' ? 'refunded' : 'captured' : 'external',
+    paymentState: publicPaymentState(data, channel),
     paidAt: Math.max(0, Number(data.paidAt || 0)),
     paymentWorkflow: paymentWorkflow({ ...data, paymentMethod: channel }),
     deliveryVisible,
@@ -503,6 +516,7 @@ async function createOrder({ uid, authUser = {}, rawItems = [], paymentMethod = 
     }
     applyPromotionInTransaction({ transaction: tx, promotion, uid: safeUid, orderId: orderRef.id, now });
     tx.create(orderRef, rawOrder);
+    require('./telegramNotifications').enqueue(tx, db, rawOrder);
     tx.create(idempotencyRef, {
       uid: safeUid, orderId: orderRef.id, keyHash: idempotencyId, requestHash,
       createdAt: now
@@ -517,6 +531,7 @@ async function createOrder({ uid, authUser = {}, rawItems = [], paymentMethod = 
   if (stockChanged) invalidateStockCache();
   invalidateCreatedAtPageCache('storeOrders');
   if (method === 'wallet') invalidateCreatedAtPageCache('storeWalletLedger');
+  require('./telegramNotifications').wake();
   return orderResponse({ uid: safeUid, authUser, order: result, catalog });
 }
 
@@ -820,6 +835,7 @@ async function updateOrderByAdmin({ orderId = '', input = {}, actor = {} } = {})
     const telegramPayment = channel === 'telegram';
     const approving = ['paid', 'processing', 'delivery_pending', 'delivered'].includes(requestedStatus) && !current.approvedAt;
     const refunding = requestedStatus === 'refunded' || requestedStatus === 'cancelled' && hasPaymentEvidence(current);
+    if ((refunding || telegramPayment && approving) && actor.financialPermission === false) throw serviceError('ADMIN_FINANCIAL_PERMISSION_REQUIRED', 403);
     const paymentReference = safeText(input.paymentReference, 160);
     if (telegramPayment && (approving || refunding) && (input.paymentConfirmed !== true || paymentReference.length < 6)) throw serviceError('STORE_MANUAL_PAYMENT_EVIDENCE_REQUIRED', 409);
     if (input.expectedUpdatedAt !== undefined && Number(current.updatedAt || 0) !== input.expectedUpdatedAt) throw serviceError('STORE_ORDER_CONFLICT', 409);

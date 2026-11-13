@@ -113,6 +113,19 @@ function requireStaffAdministrator(req, res, next) {
   return res.status(403).json({ ok: false, error: 'ADMIN_OWNER_REQUIRED' });
 }
 
+router.get('/store/experience', asyncRoute(async (_req, res) => {
+  const experience = await require('../core/merchandisingService').getExperience();
+  res.setHeader('Cache-Control', 'public, max-age=30');
+  res.json({ ok: true, experience });
+}));
+router.get('/admin/store/experience', ...adminChain, requireStorePermission('store.content.read'), asyncRoute(async (_req, res) => {
+  noStore(res); res.json({ ok: true, experience: await require('../core/merchandisingService').getExperience({ admin: true }) });
+}));
+router.put('/admin/store/experience', ...sensitiveAdminChain('store.content.write'), asyncRoute(async (req, res) => {
+  const experience = await require('../core/merchandisingService').updateExperience(req.body, req.user);
+  noStore(res); res.json({ ok: true, experience });
+}));
+
 router.get('/store/catalog', asyncRoute(async (_req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   res.json({ ok: true, catalog: await publicCatalog() });
@@ -251,7 +264,7 @@ router.get('/admin/store/orders', ...adminChain, requireStorePermission('store.o
 }));
 
 router.patch('/admin/store/orders/:orderId', ...sensitiveAdminChain('store.orders.write'), asyncRoute(async (req, res) => {
-  const order = await updateOrderByAdmin({ orderId: req.params.orderId, input: req.body || {}, actor: req.user });
+  const order = await updateOrderByAdmin({ orderId: req.params.orderId, input: req.body || {}, actor: { ...req.user, financialPermission: require('../core/adminStoreService').staffHasPermission(req.adminPolicy, 'store.wallet.write') } });
   invalidateAdminStoreCaches();
   await writeSupplementalAdminAudit(req, 'store.order.update', { orderId: req.params.orderId, orderNumber: order.orderNumber, before: { status: order.previousStatus || '' }, after: { status: order.status } });
   noStore(res);
@@ -561,6 +574,7 @@ router.get('/admin/store/security', ...adminChain, requireStorePermission('store
     security,
     gateSecurity,
     runtime: {
+      telegramNotifications: require('../core/telegramNotifications').status(),
       appCheckMode: configuration.appCheckMode,
       appCheckConfigured: configuration.appCheckConfigured === true,
       keyVaultReady: configuration.keyVaultReady === true,

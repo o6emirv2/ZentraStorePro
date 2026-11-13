@@ -286,7 +286,9 @@ async function readOverrides() {
   };
 }
 
+let catalogFailureUntil = 0;
 async function getEffectiveCatalog({ includeInactive = false, fresh = false } = {}) {
+  if (catalogFailureUntil > Date.now()) throw serviceError('STORE_STORAGE_TEMPORARILY_UNAVAILABLE', 503);
   const now = Date.now();
   if (!fresh && cache && now - cache.at < CACHE_TTL_MS) {
     return includeInactive ? cache.admin : cache.public;
@@ -312,14 +314,14 @@ async function getEffectiveCatalog({ includeInactive = false, fresh = false } = 
         public: {
           ...common,
           products: products
-            .filter((product) => product.active !== false && product.archived !== true && overrides.storefront.categoryVisibility?.[product.platform] !== false)
+            .filter((product) => product.active !== false && product.archived !== true && overrides.storefront.categoryVisibility?.[product.platform] !== false && overrides.storefront.categoryVisibility?.[product.categoryKey] !== false)
             .map((product) => ({ ...product, plans: product.plans.filter((plan) => plan.active !== false) }))
             .filter((product) => product.plans.length > 0)
         },
         admin: { ...common, products }
       };
     })();
-    catalogLoad = pending.finally(() => { catalogLoad = null; });
+    catalogLoad = pending.catch(error => { if (require('./workerScheduler').quotaError(error)) { catalogFailureUntil = Date.now() + 60_000; throw serviceError('STORE_STORAGE_TEMPORARILY_UNAVAILABLE', 503); } throw error; }).finally(() => { catalogLoad = null; });
   }
   await catalogLoad;
   if (!cache) return getEffectiveCatalog({ includeInactive, fresh: true });
@@ -410,11 +412,15 @@ async function updateProductSettings(productId = '', input = {}, actor = {}) {
   if (!db) throw serviceError('STORE_STORAGE_UNAVAILABLE', 503);
   await readOverrides();
   const reference = db.collection('storefrontSettings').doc('main');
+  const uploaded = input.imageUpload === undefined ? null : await uploadProductImage(input.imageUpload);
+  const effectiveInput = { ...input, ...(uploaded ? { image: uploaded.url } : {}) };
+  delete effectiveInput.imageUpload;
+  try {
   const saved = await db.runTransaction(async (transaction) => {
     const snapshot = await transaction.get(reference);
     const current = catalogState(snapshot.exists ? snapshot.data() : {});
     if (!current) throw serviceError('STORE_CATALOG_PERSISTENCE_UNAVAILABLE', 503);
-    const prepared = productSettingsPatch(id, mergeProductInput(current.products[id], input), actor, Date.now(), current.customProducts);
+    const prepared = productSettingsPatch(id, mergeProductInput(current.products[id], effectiveInput), actor, Date.now(), current.customProducts);
     const nextCatalog = { ...current, updatedAt: prepared.patch.updatedAt, products: { ...current.products, [prepared.id]: prepared.patch } };
     assertCatalogCapacity(snapshot.data() || {}, nextCatalog);
     transaction.set(reference, { catalog: nextCatalog }, { merge: true });
@@ -424,6 +430,7 @@ async function updateProductSettings(productId = '', input = {}, actor = {}) {
   });
   invalidateCatalogCache();
   return saved;
+  } catch (error) { if (uploaded) await uploaded.discard().catch(() => {}); throw error; }
 }
 
 async function updateProductsBulk(updates = [], actor = {}, context = {}) {
