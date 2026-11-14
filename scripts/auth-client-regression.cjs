@@ -13,6 +13,7 @@ async function scenario(callback, source = 'public/js/store/auth.js', setup = ()
   const auth = { currentUser: null, useDeviceLanguage() {}, authStateReady: async () => {} };
   function user(uid) { const row = fixture.users.get(uid); return { uid, email: row.email, emailVerified: row.emailVerified, displayName: 'Fixture', getIdToken: async () => fixture.idToken(uid) }; }
   const changed = current => { auth.currentUser = current; for (const listener of listeners) queueMicrotask(() => listener(current)); };
+  const changesBefore = fixture.passwordChanges; Object.defineProperty(counts, 'changes', { get: () => fixture.passwordChanges - changesBefore });
   const sdk = {
     getAuth: () => auth, browserLocalPersistence: {}, browserSessionPersistence: {}, inMemoryPersistence: {},
     setPersistence: async (_auth, persistence) => { if (faults.persistence && persistence !== sdk.inMemoryPersistence) throw new Error('storage unavailable'); },
@@ -22,7 +23,8 @@ async function scenario(callback, source = 'public/js/store/auth.js', setup = ()
     EmailAuthProvider: { credential: (email, password) => ({ email, password }) },
     reauthenticateWithCredential: async (current, credential) => { if (fixture.users.get(current.uid).password !== credential.password) throw Object.assign(new Error('wrong password'), { code: 'auth/invalid-credential' }); return { user: current }; },
     validatePassword: async () => { if (faults.policy) throw Object.assign(new Error('policy unavailable'), { code: 'auth/network-request-failed' }); return { isValid: true }; },
-    updatePassword: async (current, password) => { counts.changes++; fixture.users.get(current.uid).password = password; if (faults.passwordLost) throw Object.assign(new Error('provider reply lost'), { code: 'auth/network-request-failed' }); },
+    updatePassword: async () => { throw new Error('password changes must use the authenticated server flow'); },
+    sendEmailVerification: async () => { counts.verifications = (counts.verifications || 0) + 1; },
     reload: async current => Object.assign(current, user(current.uid)), updateProfile: async (current, input) => Object.assign(current, input),
     verifyBeforeUpdateEmail: async (current, email) => { faults.pendingEmail = email; },
     createUserWithEmailAndPassword: async (_auth, email, password) => { counts.creates++; const uid = 'reg' + String(++registrationSequence).padStart(6, '0'); fixture.users.set(uid, { uid, email, emailVerified: false, disabled: false, generation: 0, password }); const current = user(uid); changed(current); return { user: current }; }
@@ -41,6 +43,7 @@ async function scenario(callback, source = 'public/js/store/auth.js', setup = ()
     if (path === '/api/store/account' && faults.account) return response({ ok: false, error: 'STORE_STORAGE_UNAVAILABLE' }, 503);
     const headers = new Headers(options.headers); headers.set('Origin', fixture.origin);
     const result = await fetch(url, { ...options, headers });
+    if (path === '/api/store/profile/password' && faults.passwordLost) throw new TypeError('controlled response loss after real server mutation');
     if (path === '/api/public/runtime-config' && faults.noAppCheck) { const body = await result.json(); body.appCheck = { mode: 'monitor', siteKey: '' }; return response(body); }
     if (path === '/api/store/account' && faults.holdAccount) { const holding = faults.holdAccount; delete faults.holdAccount; const body = await result.json(); return new Promise(resolve => holding(() => resolve(response(body)))); }
     if (path === '/api/store/account' && faults.wrongAccount) { const body = await result.json(); body.account.uid = 'other-user'; return response(body); }
@@ -56,6 +59,7 @@ const login = module => module.signInStore({ identifier: 'emirhan', password: fi
 const passwordInput = () => ({ currentPassword: fixture.users.get('member').password, newPassword: 'Changed password ' + Date.now() + '!', newPasswordRepeat: 'Changed password ' + Date.now() + '!' });
 
 test('full client module signs in through actual private login and account routes', async () => scenario(async ({ module }) => { await login(module); assert.equal(module.getStoreAuthSnapshot().user.uid, 'member'); assert.equal(module.getStoreAuthSnapshot().account.uid, 'member'); }));
+test('email verification is sent only for the signed-in unverified account', async () => scenario(async ({ module, counts }) => { await login(module); const row = fixture.users.get('member'); row.emailVerified = false; try { assert.equal((await module.sendStoreVerificationEmail()).accepted, true); assert.equal(counts.verifications, 1); row.emailVerified = true; assert.equal((await module.sendStoreVerificationEmail()).alreadyVerified, true); assert.equal(counts.verifications, 1); } finally { row.emailVerified = true; } }));
 test('supplementary cookie failure cannot turn a verified login into wrong credentials', async () => scenario(async ({ module, faults }) => { faults.session = true; await login(module); assert.equal(module.getStoreAuthSnapshot().user.uid, 'member'); assert(module.getStoreAuthSnapshot().warning); }));
 test('blocked persistence falls back to a declared memory session', async () => scenario(async ({ module, faults }) => { faults.persistence = true; await login(module); assert.equal(module.getStoreAuthSnapshot().user.uid, 'member'); assert.match(module.getStoreAuthSnapshot().warning, /sekmede/); }));
 test('a committed password stays successful when subsequent session renewal fails', async () => scenario(async ({ module, faults, counts }) => { await login(module); faults.session = true; const input = passwordInput(); input.newPasswordRepeat = input.newPassword; const result = await module.changeStorePassword(input); assert.equal(result.changed, true); assert(result.warning); assert.equal(counts.changes, 1); }));

@@ -332,6 +332,17 @@ router.patch(
   "/store/profile/username",
   ...protectedProfileUpdate(updateProfileUsername),
 );
+router.post(
+  "/store/profile/password",
+  requireAuth,
+  strictLimiter,
+  requireRecentUserAuth,
+  asyncRoute(async (req, res) => {
+    const result = await require("../email/password").changePassword(req.user.uid, req.body);
+    noStore(res);
+    res.json({ ok: true, ...result });
+  }),
+);
 router.patch(
   "/store/profile/name",
   ...protectedProfileUpdate(updateProfileFullName),

@@ -1,5 +1,5 @@
-import { friendlyStoreError, loadStoreRuntimeConfig, setStoreAppCheckTokenProvider, setStoreTokenProvider, storeApi } from './api.js?v=zentra-ui-v90r1';
-import { createAccountReader } from './account-state.js?v=zentra-ui-v90r1';
+import { friendlyStoreError, loadStoreRuntimeConfig, setStoreAppCheckTokenProvider, setStoreTokenProvider, storeApi } from './api.js?v=zentra-ui-v95r1';
+import { createAccountReader } from './account-state.js?v=zentra-ui-v95r1';
 
 const FIREBASE_VERSION = '12.17.1';
 const FIREBASE_APP_URL = `https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-app.js`;
@@ -223,12 +223,25 @@ export async function changeStorePassword({ currentPassword = '', newPassword = 
     if (password !== String(newPasswordRepeat)) throw failure('PASSWORD_MISMATCH', 'Şifreler eşleşmiyor.');
     if (password === String(currentPassword)) throw failure('PASSWORD_UNCHANGED', 'Yeni şifre mevcut şifreden farklı olmalıdır.');
     const user = await reauthenticateStoreUser(currentPassword); await validatePassword(password); requireUnchangedUser(user);
-    try { await state.sdk.updatePassword(user, password); }
-    catch (error) { if (/network|timeout/i.test(String(error.code))) throw failure('PASSWORD_CHANGE_UNCERTAIN', 'Şifre değişiminin sonucu doğrulanamadı. Yeni şifrenizle girişinizi kontrol edin; işlemi tekrar göndermeyin.'); throw error; }
+    await user.getIdToken(true); requireUnchangedUser(user);
+    try {
+      const response = await storeApi('/api/store/profile/password', { method: 'POST', auth: 'bearer', timeoutMs: 30000, body: { currentPassword: String(currentPassword), newPassword: password, idempotencyKey: window.crypto.randomUUID() } });
+      if (response.changed !== true) throw failure('PASSWORD_CHANGE_UNCERTAIN');
+    }
+    catch (error) { if (error.code === 'PASSWORD_CHANGE_UNCERTAIN' || error.mutationNotSent !== true && (['NETWORK_ERROR', 'REQUEST_TIMEOUT', 'RESPONSE_INVALID'].includes(error.code) || error.status >= 500)) throw failure('PASSWORD_CHANGE_UNCERTAIN', 'Şifre değişiminin sonucu doğrulanamadı. Yeni şifrenizle girişinizi kontrol edin; işlemi tekrar göndermeyin.'); throw error; }
     requireUnchangedUser(user); let warning;
-    try { await finishIdentity(user); warning = state.warning; }
+    try { await reauthenticateStoreUser(password); await finishIdentity(user); warning = state.warning; }
     catch (error) { warning = `Şifre değişti; oturumun yenilenmesi doğrulanamadı. ${friendlyStoreError(error)}`; }
     return { changed: true, warning };
+  });
+}
+export async function sendStoreVerificationEmail() {
+  return withOperation(async () => {
+    const user = requireSignedInUser();
+    await state.sdk.reload(user); requireUnchangedUser(user);
+    if (user.emailVerified) return { alreadyVerified: true };
+    await state.sdk.sendEmailVerification(user); requireUnchangedUser(user);
+    return { accepted: true };
   });
 }
 export async function logoutStore() {

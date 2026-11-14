@@ -1,5 +1,5 @@
-import { modal, toast } from "./ui.js?v=94";
-import { tr } from "./preferences.mjs?v=94";
+import { modal, toast } from "./ui.js?v=95";
+import { tr } from "./preferences.mjs?v=95";
 let installEvent = null,
   updateOffered = false;
 window.addEventListener("beforeinstallprompt", (event) => {

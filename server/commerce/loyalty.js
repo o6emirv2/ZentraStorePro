@@ -148,6 +148,7 @@ async function redeem(uid, input) {
       points: config.rewardPoints,
       createdAt: now,
     });
+    require("../email/service").enqueue(tx, database, { uid, type: "coupon_assigned", key: code, data: { code }, now });
     return { code, points: config.rewardPoints };
   });
 }

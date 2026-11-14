@@ -12,10 +12,16 @@ const DEFAULT_PREFS = Object.freeze({
   stockNotifications: false,
   priceNotifications: false,
   licenseReminders: false,
+  emailStockNotifications: false,
+  emailPriceNotifications: false,
+  emailLicenseReminders: false,
+  emailCouponNotifications: false,
+  emailOrderNotifications: true,
+  emailWalletNotifications: true,
 });
 function preferences(input = {}, previous = DEFAULT_PREFS) {
   C.object(input, Object.keys(DEFAULT_PREFS));
-  const out = { ...previous };
+  const out = { ...DEFAULT_PREFS, ...previous };
   for (const [key, value] of Object.entries(input)) {
     if (key === "theme")
       out[key] = C.choice(value, ["system", "light", "dark"]);
@@ -248,6 +254,8 @@ async function exportData(uid) {
       "storeCustomerRequests",
       "storeDataRequests",
       "storeNotifications",
+      "storeEmailOutbox",
+      "storePasswordOperations",
     ];
   const [person, preferences, ...snapshots] = await Promise.all([
     database.collection("users").doc(uid).get(),
@@ -339,6 +347,21 @@ async function exportData(uid) {
       message: x.message,
       createdAt: x.createdAt,
       readAt: x.readAt || 0,
+    })),
+    emailNotifications: rows.storeEmailOutbox.map((x) => ({
+      id: x.id,
+      type: x.type,
+      state: x.state,
+      createdAt: x.createdAt,
+      acceptedAt: x.acceptedAt || 0,
+      deliveredAt: x.deliveredAt || 0,
+      failureCode: x.failureCode || "",
+    })),
+    passwordChanges: rows.storePasswordOperations.map((x) => ({
+      id: x.id,
+      state: x.state,
+      createdAt: x.createdAt,
+      completedAt: x.completedAt || 0,
     })),
     scope: {
       perCollectionLimit: 1000,

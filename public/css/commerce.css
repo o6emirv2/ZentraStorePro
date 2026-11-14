@@ -4,6 +4,23 @@
   gap: 12px;
   margin: 22px 0;
 }
+#commerce-preferences fieldset {
+  min-inline-size: 0;
+  margin: 24px 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+#commerce-preferences legend {
+  max-inline-size: 100%;
+  padding-inline: 8px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+#commerce-preferences .checkbox {
+  align-items: flex-start;
+  overflow-wrap: anywhere;
+}
 .commerce-shortcuts a {
   display: flex;
   justify-content: space-between;

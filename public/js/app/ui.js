@@ -1,5 +1,5 @@
-import { translate } from "./preferences.mjs?v=94";
-import { imageVariants } from "./images.mjs?v=94";
+import { translate } from "./preferences.mjs?v=95";
+import { imageVariants } from "./images.mjs?v=95";
 export const escape = (value = "") =>
   String(value ?? "").replace(
     /[&<>"']/g,

@@ -89,7 +89,7 @@ function adminHandoffPage({ success = false, message = "", code = "" } = {}) {
   const title = success
     ? "Yönetim merkezi açılıyor"
     : "Güvenli geçiş tamamlanamadı";
-  return `<!doctype html><html lang="tr"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" /><meta name="robots" content="noindex,nofollow,noarchive" />${success ? '<meta http-equiv="refresh" content="0;url=/admin/" />' : ""}<title>Zentra Store | Güvenli geçiş</title><link rel="stylesheet" href="/public/assets/fonts/fonts.css" /><link rel="stylesheet" href="/public/css/zentra.css?v=94" /><link rel="stylesheet" href="/public/css/device.css?v=94" /><script type="module" src="/public/js/app/device.js?v=94"></script></head><body><main class="container main-content"><section class="panel"><a class="brand" href="/"><img class="brand-image" src="/public/assets/images/apple-touch-icon.png" alt="Zentra Store" width="192" height="192" draggable="false"/><span class="brand-text" aria-hidden="true">ZENTRA STORE<small>DİJİTAL ÜRÜN MAĞAZASI</small></span></a><span class="eyebrow">ZENTRA STORE · YÖNETİCİ ERİŞİMİ</span><h1>${title}</h1><p class="fine-print">${escapeHtml(message || (success ? "Yönetici oturumun doğrulandı." : "Giriş adımlarını yeniden deneyin."))}</p><a class="button primary" href="${escapeHtml(destination)}">${success ? "Yönetim merkezine devam et" : "Yeniden giriş yap"}</a>${code ? `<p class="fine-print">İşlem kodu: ${escapeHtml(code)}</p>` : ""}</section></main></body></html>`;
+  return `<!doctype html><html lang="tr"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" /><meta name="robots" content="noindex,nofollow,noarchive" />${success ? '<meta http-equiv="refresh" content="0;url=/admin/" />' : ""}<title>Zentra Store | Güvenli geçiş</title><link rel="stylesheet" href="/public/assets/fonts/fonts.css" /><link rel="stylesheet" href="/public/css/zentra.css?v=95" /><link rel="stylesheet" href="/public/css/device.css?v=95" /><script type="module" src="/public/js/app/device.js?v=95"></script></head><body><main class="container main-content"><section class="panel"><a class="brand" href="/"><img class="brand-image" src="/public/assets/images/apple-touch-icon.png" alt="Zentra Store" width="192" height="192" draggable="false"/><span class="brand-text" aria-hidden="true">ZENTRA STORE<small>DİJİTAL ÜRÜN MAĞAZASI</small></span></a><span class="eyebrow">ZENTRA STORE · YÖNETİCİ ERİŞİMİ</span><h1>${title}</h1><p class="fine-print">${escapeHtml(message || (success ? "Yönetici oturumun doğrulandı." : "Giriş adımlarını yeniden deneyin."))}</p><a class="button primary" href="${escapeHtml(destination)}">${success ? "Yönetim merkezine devam et" : "Yeniden giriş yap"}</a>${code ? `<p class="fine-print">İşlem kodu: ${escapeHtml(code)}</p>` : ""}</section></main></body></html>`;
 }
 
 app.disable("x-powered-by");
@@ -331,6 +331,7 @@ app.post(
   },
 );
 
+require("./server/email/routes").register(app, express);
 app.use("/api", cors(corsOptions));
 app.options("/api/*", cors(corsOptions));
 app.use("/api", apiLimiter);
@@ -608,6 +609,7 @@ function startServer() {
   startRestockWorker();
   startMaintenanceWorker();
   require("./server/core/telegramNotifications").start();
+  require("./server/email/service").start();
   process.once("SIGTERM", () => shutdown("SIGTERM"));
   process.once("SIGINT", () => shutdown("SIGINT"));
   return server;
@@ -618,6 +620,7 @@ function shutdown(signal) {
   stopRestockWorker();
   stopMaintenanceWorker();
   require("./server/core/telegramNotifications").stop();
+  require("./server/email/service").stop();
   if (!server) return;
   server.close(() => process.exit(process.exitCode || 0));
   server.closeIdleConnections?.();

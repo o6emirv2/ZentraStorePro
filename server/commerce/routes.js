@@ -33,6 +33,22 @@ module.exports = function register(
     ),
   });
   router.get(
+    admin + "/email",
+    ...policy("store.security.read"),
+    send(() => require("../email/service").status()),
+  );
+  router.post(
+    admin + "/email/test",
+    ...sensitiveAdminChain("store.operations.write"),
+    send((req) => {
+      C.object(req.body, ["idempotencyKey"]);
+      return require("../email/service").queueTest(
+        req.user.uid,
+        C.id(req.body.idempotencyKey, 100),
+      );
+    }),
+  );
+  router.get(
     base + "/products/:id",
     send((req) => catalog.publicProduct(req.params.id)),
   );

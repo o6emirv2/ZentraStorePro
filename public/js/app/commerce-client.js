@@ -9,13 +9,13 @@ import {
   busy,
   status,
   copyText,
-} from "./ui.js?v=94";
+} from "./ui.js?v=95";
 import {
   applyPreferences,
   displayPreferences,
   tr,
   translate,
-} from "./preferences.mjs?v=94";
+} from "./preferences.mjs?v=95";
 const BASE = "/api/store/commerce";
 const button = (action, label, id = "", extra = "") =>
   `<button type="button" class="button secondary small" data-commerce="${e(action)}" data-id="${e(id)}" ${extra}>${e(label)}</button>`;
@@ -214,7 +214,7 @@ export function createCommerceClient({
         [200, "200%"],
       ],
       p.textScale,
-    )}${check("highContrast", tr("Yüksek kontrast", "High contrast"), p.highContrast)}${check("reducedMotion", tr("Hareketi azalt", "Reduce motion"), p.reducedMotion)}${check("stockNotifications", tr("Stok bildirimlerini aç", "Enable stock notifications"), p.stockNotifications)}${check("priceNotifications", tr("Fiyat bildirimlerini aç", "Enable price notifications"), p.priceNotifications)}${check("licenseReminders", tr("Lisans hatırlatmalarını aç", "Enable license reminders"), p.licenseReminders)}<button type="submit" class="button primary">${tr("Tercihleri kaydet", "Save preferences")}</button></form>`;
+    )}${check("highContrast", tr("Yüksek kontrast", "High contrast"), p.highContrast)}${check("reducedMotion", tr("Hareketi azalt", "Reduce motion"), p.reducedMotion)}${check("stockNotifications", tr("Stok bildirimlerini aç", "Enable stock notifications"), p.stockNotifications)}${check("priceNotifications", tr("Fiyat bildirimlerini aç", "Enable price notifications"), p.priceNotifications)}${check("licenseReminders", tr("Lisans hatırlatmalarını aç", "Enable license reminders"), p.licenseReminders)}<fieldset><legend>${tr("E-posta bildirimleri", "Email notifications")}</legend><p class="fine-print">${tr("E-postalar doğrulanmış hesap adresine gönderilir. Stok ve fiyat bildirimleri takip ettiğin ürünler için geçerlidir.", "Emails go to your verified account address. Stock and price alerts apply to products you follow.")}</p>${check("emailStockNotifications", tr("Stok geldiğinde e-posta gönder", "Email me when stock returns"), p.emailStockNotifications)}${check("emailPriceNotifications", tr("Fiyat düştüğünde e-posta gönder", "Email me about price drops"), p.emailPriceNotifications)}${check("emailLicenseReminders", tr("Lisans bitişini e-postayla hatırlat", "Email license reminders"), p.emailLicenseReminders)}${check("emailCouponNotifications", tr("Hesabıma özel kuponları e-postayla bildir", "Email my assigned coupons"), p.emailCouponNotifications)}${check("emailOrderNotifications", tr("Sipariş ve teslimat e-postaları", "Order and delivery emails"), p.emailOrderNotifications !== false)}${check("emailWalletNotifications", tr("Bakiye ekleme e-postaları", "Wallet credit emails"), p.emailWalletNotifications !== false)}<p class="fine-print">${tr("Şifre ve kullanıcı adı değişiklikleri güvenlik bildirimi olarak gönderilir.", "Password and username changes generate security notices.")}</p></fieldset><button type="submit" class="button primary">${tr("Tercihleri kaydet", "Save preferences")}</button></form>`;
   }
   async function accountSection(section) {
     const title = {
@@ -923,6 +923,12 @@ export function createCommerceClient({
         stockNotifications: data.has("stockNotifications"),
         priceNotifications: data.has("priceNotifications"),
         licenseReminders: data.has("licenseReminders"),
+        emailStockNotifications: data.has("emailStockNotifications"),
+        emailPriceNotifications: data.has("emailPriceNotifications"),
+        emailLicenseReminders: data.has("emailLicenseReminders"),
+        emailCouponNotifications: data.has("emailCouponNotifications"),
+        emailOrderNotifications: data.has("emailOrderNotifications"),
+        emailWalletNotifications: data.has("emailWalletNotifications"),
       },
     })
       .then(() => {

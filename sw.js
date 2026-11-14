@@ -1,5 +1,5 @@
 "use strict";
-const VERSION = "zentra-public-v94-r1";
+const VERSION = "zentra-public-v95-r1";
 const OFFLINE = "/offline.html";
 const PRECACHE = [
   OFFLINE,

@@ -1,8 +1,8 @@
-import { createCommerceWorkspace } from "./commerce.js?v=94";
-import { dismissPrivateDialogs } from "../public/js/app/session-view.mjs?v=94";
-import "../public/js/app/device.js?v=94";
-import { presentScreen } from "../public/js/app/motion.mjs?v=94";
-import { metricLabel, metricValue } from "./metrics.mjs?v=94";
+import { createCommerceWorkspace } from "./commerce.js?v=95";
+import { dismissPrivateDialogs } from "../public/js/app/session-view.mjs?v=95";
+import "../public/js/app/device.js?v=95";
+import { presentScreen } from "../public/js/app/motion.mjs?v=95";
+import { metricLabel, metricValue } from "./metrics.mjs?v=95";
 import {
   escape as e,
   brand,
@@ -18,12 +18,12 @@ import {
   statusNames,
   safeImage,
   empty,
-} from "../public/js/app/ui.js?v=94";
+} from "../public/js/app/ui.js?v=95";
 import {
   CATEGORY_PRESETS,
   GAME_KEYS,
 } from "../public/js/store/catalog-schema.mjs";
-import { prepareProductImage } from "./product-image-upload.js?v=zentra-ui-v90r1";
+import { prepareProductImage } from "./product-image-upload.js?v=zentra-ui-v95r1";
 const views = [
   ["commerce-catalog", "edit", "İçerik stüdyosu", "store.catalog.read"],
   ["commerce-support", "support", "Müşteri deneyimi", "store.support.read"],

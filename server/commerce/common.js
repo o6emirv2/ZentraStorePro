@@ -133,24 +133,42 @@ function publicRows(result, pick = (x) => x) {
 function audit(tx, database, action, actor, changes) {
   recordMutationAudit(tx, database, action, actor, changes);
 }
-function notification(tx, database, uid, key, title, message, data = {}) {
+function notification(
+  tx,
+  database,
+  uid,
+  key,
+  title,
+  message,
+  data = {},
+  { site = true } = {},
+) {
   const ref = database.collection("storeNotifications").doc(hash(uid, key));
-  tx.set(
-    ref,
-    {
-      id: ref.id,
+  if (site)
+    tx.set(
+      ref,
+      {
+        id: ref.id,
+        uid,
+        type: "commerce",
+        title,
+        message,
+        productId: data.productId || "",
+        orderId: data.orderId || "",
+        readAt: 0,
+        createdAt: Date.now(),
+        ...data,
+      },
+      { merge: true },
+    );
+  const emailType = key.split(":")[0];
+  if (["stock", "price", "license"].includes(emailType))
+    require("../email/service").enqueue(tx, database, {
       uid,
-      type: "commerce",
-      title,
-      message,
-      productId: data.productId || "",
-      orderId: data.orderId || "",
-      readAt: 0,
-      createdAt: Date.now(),
-      ...data,
-    },
-    { merge: true },
-  );
+      type: emailType,
+      key,
+      data,
+    });
 }
 module.exports = {
   error,

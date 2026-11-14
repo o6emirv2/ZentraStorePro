@@ -5,7 +5,7 @@ const CONFIGURATION_ERRORS = /API_KEY_(?:INVALID|HTTP_REFERRER_BLOCKED|SERVICE_B
 function failure(code, statusCode = 503) { return Object.assign(new Error(code), { code, statusCode }); }
 
 async function identityRequest(action, body) {
-  if (!['signInWithPassword', 'sendOobCode'].includes(action)) throw failure('AUTH_UNAVAILABLE');
+  if (!['signInWithPassword', 'sendOobCode', 'update'].includes(action)) throw failure('AUTH_UNAVAILABLE');
   if (env.configurationReport?.().capabilities?.identity === false) throw failure('AUTH_PROVIDER_CONFIGURATION_INVALID');
   const apiKey = String(env.firebase.identityApiKey || env.firebase.publicConfig.apiKey || '').trim();
   if (!apiKey) throw failure('AUTH_UNAVAILABLE');

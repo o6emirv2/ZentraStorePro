@@ -1,23 +1,23 @@
-import { initPwa, installStore } from "./pwa.js?v=94";
-import { createCommerceClient } from "./commerce-client.js?v=94";
-import { translate, tr } from "./preferences.mjs?v=94";
+import { initPwa, installStore } from "./pwa.js?v=95";
+import { createCommerceClient } from "./commerce-client.js?v=95";
+import { translate, tr } from "./preferences.mjs?v=95";
 import {
   authMode,
   authPath,
   safeReturnTo,
   syncNavigation,
   measureHeader,
-} from "./navigation.mjs?v=94";
-import { clearCustomerSessionView } from "./session-view.mjs?v=94";
-import "./device.js?v=94";
-import { presentScreen } from "./motion.mjs?v=94";
-import { productGallery, galleryIndex } from "./gallery.mjs?v=94";
-import { filterProducts } from "./catalog.mjs?v=94";
+} from "./navigation.mjs?v=95";
+import { clearCustomerSessionView } from "./session-view.mjs?v=95";
+import "./device.js?v=95";
+import { presentScreen } from "./motion.mjs?v=95";
+import { productGallery, galleryIndex } from "./gallery.mjs?v=95";
+import { filterProducts } from "./catalog.mjs?v=95";
 import {
   storeApi,
   loadStoreRuntimeConfig,
   friendlyStoreError,
-} from "../store/api.js?v=zentra-ui-v90r1";
+} from "../store/api.js?v=zentra-ui-v95r1";
 import {
   initStoreAuth,
   subscribeStoreAuth,
@@ -30,9 +30,11 @@ import {
   changeStoreIdentity,
   changeStoreEmail,
   changeStorePassword,
-} from "../store/auth.js?v=zentra-ui-v90r1";
-import { createPurchaseTracker } from "../store/purchase-tracker.js?v=zentra-ui-v90r1";
-import { createCart, priceCart, checkoutState } from "./cart.mjs?v=94";
+  sendStoreVerificationEmail,
+  refreshStoreIdentity,
+} from "../store/auth.js?v=zentra-ui-v95r1";
+import { createPurchaseTracker } from "../store/purchase-tracker.js?v=zentra-ui-v95r1";
+import { createCart, priceCart, checkoutState } from "./cart.mjs?v=95";
 import {
   escape as e,
   money,
@@ -46,7 +48,7 @@ import {
   status,
   safeImage,
   copyText,
-} from "./ui.js?v=94";
+} from "./ui.js?v=95";
 const $ = (s) => document.querySelector(s),
   main = $("#main");
 let storage;
@@ -353,7 +355,7 @@ function accountShell(content, active = "account") {
 function account() {
   const a = state.auth.account || {};
   return accountShell(
-    `<div class="welcome-panel"><div><span class="eyebrow">ZENTRA HESABIN</span><h2>Merhaba, ${e(a.firstName || userName())}.</h2><p>Siparişlerin ve dijital dünyan kontrolün altında.</p></div><div class="balance-number"><small>Kullanılabilir bakiyen</small>${!state.auth.account || state.auth.accountStale ? "Doğrulanamadı" : money(a.balanceKurus)}</div></div>${state.auth.warning ? `<div class="notice">${e(state.auth.warning)}</div>` : ""}<button type="button" class="button secondary small" data-action="install-app">Uygulamayı yükle</button>${commerce.accountLinks()}<div class="account-card-grid"><div class="panel"><h2>Profil bilgilerin</h2><p>${e(a.firstName || "")} ${e(a.lastName || "")}<br/>${e(a.username || userName())}<br/>${e(a.birthDate || "Doğum tarihi kayıtlı değil")}</p><button class="button secondary small" data-action="profile">${icon("edit")} Bilgilerimi düzenle</button></div><div class="panel"><h2>Hesap güvenliği</h2><p>${e(state.auth.user.email)}<br/>${state.auth.user.emailVerified ? "E-posta doğrulanmış" : "E-posta henüz doğrulanmamış"}</p><button class="button secondary small" data-action="security">${icon("shield")} Güvenlik ayarları</button></div><div class="panel"><h2>Siparişlerin bir arada</h2><p>Ödeme durumunu, sipariş adımlarını ve teslimat bilgilerini hesabından takip et.</p><a class="button secondary small" href="/siparisler" data-nav>Siparişlerimi gör ${icon("arrow")}</a></div><div class="panel"><h2>Sana ait kodlar</h2><p>Bakiye kodunu hesabına tanımla, kullanılabilir indirimlerini incele.</p><a class="button secondary small" href="/kuponlar" data-nav>Kuponlarım ${icon("arrow")}</a></div></div>`,
+    `<div class="welcome-panel"><div><span class="eyebrow">ZENTRA HESABIN</span><h2>Merhaba, ${e(a.firstName || userName())}.</h2><p>Siparişlerin ve dijital dünyan kontrolün altında.</p></div><div class="balance-number"><small>Kullanılabilir bakiyen</small>${!state.auth.account || state.auth.accountStale ? "Doğrulanamadı" : money(a.balanceKurus)}</div></div>${state.auth.warning ? `<div class="notice">${e(state.auth.warning)}</div>` : ""}<button type="button" class="button secondary small" data-action="install-app">Uygulamayı yükle</button>${commerce.accountLinks()}<div class="account-card-grid"><div class="panel"><h2>Profil bilgilerin</h2><p>${e(a.firstName || "")} ${e(a.lastName || "")}<br/>${e(a.username || userName())}<br/>${e(a.birthDate || "Doğum tarihi kayıtlı değil")}</p><button class="button secondary small" data-action="profile">${icon("edit")} Bilgilerimi düzenle</button></div><div class="panel"><h2>Hesap güvenliği</h2><p>${e(state.auth.user.email)}<br/>${state.auth.user.emailVerified ? "E-posta doğrulanmış" : "E-posta henüz doğrulanmamış"}</p>${state.auth.user.emailVerified ? "" : '<button class="button secondary small" data-action="verify-email">Doğrulama e-postası gönder</button><button class="text-button" data-action="refresh-email">Doğrulamayı kontrol et</button>'}<button class="button secondary small" data-action="security">${icon("shield")} Güvenlik ayarları</button></div><div class="panel"><h2>Siparişlerin bir arada</h2><p>Ödeme durumunu, sipariş adımlarını ve teslimat bilgilerini hesabından takip et.</p><a class="button secondary small" href="/siparisler" data-nav>Siparişlerimi gör ${icon("arrow")}</a></div><div class="panel"><h2>Sana ait kodlar</h2><p>Bakiye kodunu hesabına tanımla, kullanılabilir indirimlerini incele.</p><a class="button secondary small" href="/kuponlar" data-nav>Kuponlarım ${icon("arrow")}</a></div></div>`,
   );
 }
 function orderCard(o) {
@@ -860,6 +862,16 @@ async function action(button) {
   if (state.checkoutBusy && !["recover"].includes(a)) return;
   try {
     if (a === "quick-add") return packagePicker(id);
+    if (a === "verify-email") {
+      await sendStoreVerificationEmail();
+      toast("Doğrulama bağlantısı gönderime alındı. E-posta kutunu kontrol et.");
+      return;
+    }
+    if (a === "refresh-email") {
+      await refreshStoreIdentity();
+      toast(getStoreAuthSnapshot().user?.emailVerified ? "E-posta adresin doğrulanmış." : "E-posta doğrulaması henüz tamamlanmadı.");
+      return;
+    }
     if (a === "gallery-select" || a === "gallery-step") {
       const pictures = productGallery(product(id));
       const current = galleryIndex(

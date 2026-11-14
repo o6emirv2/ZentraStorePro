@@ -1004,6 +1004,7 @@ async function createOrder({
     });
     tx.create(orderRef, rawOrder);
     require("./telegramNotifications").enqueue(tx, db, rawOrder);
+    require("../email/service").orderEvent(tx, db, rawOrder, { created: true });
     tx.create(idempotencyRef, {
       uid: safeUid,
       orderId: orderRef.id,
@@ -1437,6 +1438,7 @@ async function adjustStoreBalance({
       transactionId: adjustmentId,
       at: now,
     });
+    if (ledgerType === "CREDIT") require("../email/service").enqueue(tx, db, { uid: safeUid, type: "wallet_credit", key: adjustmentId, data: { transactionId: adjustmentId }, now });
     result = {
       uid: safeUid,
       type: ledgerType,
@@ -1813,6 +1815,7 @@ async function updateOrderByAdmin({
       actorUid,
     );
     tx.set(orderRef, patch, { merge: true });
+    require("../email/service").orderEvent(tx, db, { ...current, ...patch, id: safeOrderId }, { previous: current });
     tx.create(
       db
         .collection("audit")

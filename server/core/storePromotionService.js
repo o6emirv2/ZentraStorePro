@@ -531,7 +531,15 @@ async function savePromotion(
       uid: safeText(actor.uid, 160),
       email: safeText(actor.email, 254).toLowerCase(),
     };
+    row.emailAssignmentRevision = Math.max(0, Number(snapshot.data()?.emailAssignmentRevision) || 0) + 1;
     transaction.set(reference, row, { merge: false });
+    if (row.active === true && ["fixed", "percent"].includes(row.type)) {
+      const old = snapshot.data() || {};
+      for (const uid of row.customerUids || []) {
+        if (old.active === true && old.customerUids?.includes(uid)) continue;
+        require("../email/service").enqueue(transaction, db, { uid, type: "coupon_assigned", key: normalized + ":" + row.emailAssignmentRevision, data: { code: normalized }, now: row.updatedAt });
+      }
+    }
     recordMutationAudit(
       transaction,
       db,

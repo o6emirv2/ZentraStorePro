@@ -4,7 +4,7 @@ import {
   requestController,
   compatibleStoreWrites,
   compatiblePrivateReads,
-} from "../request-utils.js?v=zentra-ui-v90r1";
+} from "../request-utils.js?v=zentra-ui-v95r1";
 
 const DEFAULT_API_BASE = "https://emirhan-siye.onrender.com";
 const DEFAULT_TIMEOUT_MS = 9000;
@@ -14,6 +14,12 @@ let appCheckTokenProvider = null;
 let runtimePromise = null;
 
 const USER_MESSAGES = Object.freeze({
+  PASSWORD_INPUT_INVALID: "Yeni şifre en az 8 karakter olmalı ve mevcut şifreden farklı olmalıdır.",
+  PASSWORD_CHANGE_REJECTED: "Şifre sağlayıcı tarafından kabul edilmedi. Hesabının şifre kurallarını kontrol et.",
+  PASSWORD_OPERATION_CONFLICT: "Bu şifre işlemi başka bir istekle çakışıyor. Hesabının mevcut durumunu kontrol et.",
+  PASSWORD_CHANGE_IN_PROGRESS: "Hesabında devam eden bir şifre işlemi var. İşlem sonucunu kontrol etmeden yeniden gönderme.",
+  EMAIL_NOT_CONFIGURED: "E-posta gönderim yapılandırması hazır değil.",
+  EMAIL_VERIFIED_ADDRESS_REQUIRED: "Bu işlem için hesabının e-posta adresini doğrulamalısın.",
   COMMERCE_REVISION_CONFLICT:
     "Bu kayıt başka bir işlemde güncellendi. Son verileri yükleyip yeniden inceleyin.",
   COMMERCE_QUOTE_EXPIRED:

@@ -53,6 +53,7 @@ async function redeemBalanceCode(uid, input = {}, { requestId = '' } = {}) {
     tx.update(codeRef, { usedCount: row.usedCount + 1, updatedAt: now });
     tx.create(receiptRef, entry);
     tx.create(db.collection('storeWalletLedger').doc(transactionId), { ...entry, type: 'CREDIT', reason: 'Bakiye kodu kullanımı', orderId: '', username: String(profile.username || '').slice(0, 80), actor: { uid: safeUid, source: 'balance-code' } });
+    require('../email/service').enqueue(tx, db, { uid: safeUid, type: 'wallet_credit', key: transactionId, data: { transactionId }, now });
     tx.create(db.collection('audit').doc(`balance_code_${transactionId}`), { uid: safeUid, action: 'store.balance-code.redeem', type: 'store-balance-code-redeem', actor: { uid: safeUid, source: 'customer' }, amountKurus, transactionId, requestId: entry.requestId, at: now, createdAt: now });
     result = { creditedKurus: amountKurus, transactionId, committed: true, idempotentReplay: false };
   });

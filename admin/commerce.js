@@ -9,8 +9,8 @@ import {
   busy,
   safeImage,
   status,
-} from "../public/js/app/ui.js?v=94";
-import { prepareProductImage } from "./product-image-upload.js?v=zentra-ui-v90r1";
+} from "../public/js/app/ui.js?v=95";
+import { prepareProductImage } from "./product-image-upload.js?v=zentra-ui-v95r1";
 const BASE = "/api/admin/store/commerce";
 const btn = (action, label, id = "", extra = "") =>
   `<button type="button" class="button secondary small" data-commerce-admin="${e(action)}" data-id="${e(id)}" ${extra}>${e(label)}</button>`;
@@ -155,9 +155,10 @@ export function createCommerceWorkspace({ api, can, refresh, context }) {
       );
     }
     if (view === "commerce-operations") {
-      const [config, alerts] = await Promise.all([
+      const [config, alerts, email] = await Promise.all([
         call("/settings"),
         call("/alerts"),
+        call("/email"),
       ]);
       cache.set("settings", config);
       return (
@@ -169,6 +170,10 @@ export function createCommerceWorkspace({ api, can, refresh, context }) {
             : "",
         ) +
         `<div class="account-card-grid">${panel("Bakım alanları", `<p>Katalog: ${config.maintenance.catalog ? "Bakımda" : "Açık"}<br>Hesap: ${config.maintenance.account ? "Bakımda" : "Açık"}<br>Sipariş: ${config.maintenance.orders ? "Bakımda" : "Açık"}</p>`)}${panel("İş kuralları", `<p>Sadakat: ${config.loyalty.enabled ? "Etkin" : "Kapalı"}<br>Toplu işlemlerde ikinci onay: ${config.secondApproval ? "Gerekli" : "İsteğe bağlı"}</p>${can("store.orders.write") ? btn("license", "Lisans tarihlerini doğrula") + btn("assign-order", "Siparişe sorumlu ata") : ""}`)}${can("store.operations.write") ? panel("Bağlantı testi", `<p>Veritabanı testi gerçek okuma yapar. Telegram testi, yapılandırılmış yönetici sohbetine bir test iletisi gönderir.</p>${btn("diagnostic-db", "Veritabanını kontrol et")}${btn("diagnostic-telegram", "Telegram test iletisi gönder")}`) : ""}</div>` +
+        panel(
+          "E-posta bildirim merkezi",
+          `<p>Gönderici: ${e(email.from)}<br>Gönderim: ${email.enabled && email.configured ? "Yapılandırıldı — gerçek gönderim sonucu kayıtlarda görünür" : "Yapılandırma bekleniyor"}<br>Teslimat webhook doğrulaması: ${email.webhookConfigured ? "Yapılandırıldı" : "RESEND_WEBHOOK_SECRET bekleniyor"}</p><p class="fine-print">Kabul edildi, sağlayıcının isteği aldığı anlamına gelir. Teslim edildi, alıcının posta sunucusunun kabulünü gösterir. Bu durumlar mesajın okunduğunu doğrulamaz. Son ${email.sampleLimit} kayıt gösterilir.</p>${can("store.operations.write") ? btn("email-test", "Kendi adresime test e-postası gönder") : ""}<div class="audit-grid">${email.items.map((r) => `<article class="audit-card"><h3>${e({ stock: "Stok bildirimi", price: "Fiyat bildirimi", license: "Lisans hatırlatması", order_created: "Sipariş oluşturuldu", paid_delivered: "Ödeme ve teslimat", gift_received: "Hediye teslimatı", wallet_credit: "Bakiye eklendi", coupon_assigned: "Kupon tanımlandı", username_changed: "Kullanıcı adı değişti", password_changed: "Şifre değişti", test: "Bağlantı testi" }[r.type] || r.type)}</h3><dl class="audit-fields"><div><dt>Durum</dt><dd>${e({ queued: "Sırada", sending: "Gönderiliyor", retry: "Tekrar denenecek", accepted: "Sağlayıcı kabul etti", delivered: "Alıcı sunucusuna teslim edildi", delayed: "Sağlayıcıda gecikti", failed: "Başarısız", bounced: "Alıcı reddetti", complained: "Spam bildirimi", suppressed: "Gönderim engellendi", skipped: "Gönderilmedi", needs_review: "İnceleme gerekli" }[r.state] || r.state)}</dd></div><div><dt>Alıcı</dt><dd>${e(r.recipient)}</dd></div><div><dt>Tarih</dt><dd>${date(r.createdAt)}</dd></div><div><dt>Deneme / sonuç</dt><dd>${r.attempts} · ${e(r.failureCode || "—")}</dd></div><div><dt>İşlem</dt><dd>${e(r.id)}</dd></div></dl></article>`).join("") || empty()}</div>`,
+        ) +
         panel(
           "Kaydedilen sistem uyarıları",
           alerts.items
@@ -874,6 +879,21 @@ export function createCommerceWorkspace({ api, can, refresh, context }) {
         refresh();
         return;
       }
+      if (a === "email-test")
+        return modal({
+          title: "Gerçek e-posta testi",
+          body: "<p>Bu işlem yalnızca giriş yaptığın yönetici hesabının doğrulanmış e-posta adresine bir test iletisi göndermek üzere kuyruğa alır. Sağlayıcı kullanım kotasına sayılır.</p>",
+          submit: "Testi kuyruğa al",
+          onSubmit: async () => {
+            await mutation("/email/test", {
+              idempotencyKey: crypto.randomUUID(),
+            });
+            toast(
+              "Test iletisi kuyruğa alındı. Sonucu e-posta bildirim merkezinden kontrol et.",
+            );
+            refresh();
+          },
+        });
       if (a.startsWith("diagnostic-")) {
         const r = await mutation("/diagnostic", {
           kind: a === "diagnostic-db" ? "database" : "telegram",

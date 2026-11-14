@@ -1,6 +1,7 @@
 "use strict";
 const C = require("./common");
 const contracts = [
+  ["POST", /^\/api\/admin\/store\/commerce\/email\/test$/, ["idempotencyKey"]],
   [
     "PATCH",
     /^\/api\/store\/commerce\/profile$/,

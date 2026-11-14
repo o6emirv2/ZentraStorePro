@@ -49,6 +49,7 @@ const CONTRACTS = [
   ['POST', /^\/api\/admin\/action-proof$/, object({ method: text(8), path: text(240), password: text(4096), bodyHash: (value) => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value) })],
   ['PATCH', /^\/api\/store\/profile\/avatar$/, object({ avatarId: text(40) })],
   ['PATCH', /^\/api\/store\/profile\/username$/, object({ username: text(80) })],
+  ['POST', /^\/api\/store\/profile\/password$/, object({ currentPassword: text(4096), newPassword: text(4096), idempotencyKey: text(100) })],
   ['PATCH', /^\/api\/store\/profile\/name$/, object({ firstName: text(80), lastName: text(80) })],
   ['PATCH', /^\/api\/store\/profile\/birth-date$/, object({ birthDate: text(20) })],
   ['POST', /^\/api\/store\/profile\/email-change\/prepare$/, object({ email: text(254) })],

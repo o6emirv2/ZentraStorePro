@@ -434,7 +434,7 @@ test("PWA never caches navigation responses or no-store assets and applies updat
   w.handlers.fetch({ request, respondWith: (p) => (result = p) });
   await result;
   assert.equal(w.stored.size, 0);
-  request.url = "https://store.test/public/js/app/store.js?v=94";
+  request.url = "https://store.test/public/js/app/store.js?v=95";
   request.mode = "cors";
   w.response.headers.set("cache-control", "no-store");
   w.handlers.fetch({ request, respondWith: (p) => (result = p) });

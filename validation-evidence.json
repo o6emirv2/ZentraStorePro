@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "checkedAt": 1794618140032,
-  "sourceDigest": "982a8e91fb807d99aa6e968550a67ff6ec2c55997974f4bf3c8b0f506e840c8e",
+  "checkedAt": 1794640754678,
+  "sourceDigest": "dc61a42c30d12ba302440e86c61cef7ba650e7bedfa4f9452464321ab2c719f3",
   "source": {
     "exitCode": 0
   },
@@ -13,9 +13,9 @@
   },
   "regression": {
     "exitCode": 0,
-    "passed": 383,
+    "passed": 417,
     "failed": 0,
-    "total": 383,
+    "total": 417,
     "skipped": 0,
     "suites": {
       "accessibility-contrast-regression.cjs": {
@@ -140,13 +140,13 @@
         "verified": true
       },
       "auth-client-regression.cjs": {
-        "tests": 19,
+        "tests": 20,
         "failed": 0,
-        "passed": 19,
+        "passed": 20,
         "cancelled": 0,
         "skipped": 0,
         "todo": 0,
-        "topLevel": 19,
+        "topLevel": 20,
         "suites": 0,
         "verified": true
       },
@@ -224,6 +224,17 @@
         "skipped": 0,
         "todo": 0,
         "topLevel": 15,
+        "suites": 0,
+        "verified": true
+      },
+      "email-regression.cjs": {
+        "tests": 33,
+        "failed": 0,
+        "passed": 33,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "topLevel": 33,
         "suites": 0,
         "verified": true
       },
@@ -539,7 +550,7 @@
   },
   "dependencies": {
     "verified": true,
-    "checkedAt": 1794618161708,
+    "checkedAt": 1794640773244,
     "info": 0,
     "low": 0,
     "moderate": 0,

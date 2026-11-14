@@ -32,13 +32,18 @@ async function priceNotifications() {
           );
         if (
           watch.data()?.price !== true ||
-          profile.data()?.preferences?.priceNotifications !== true
+          (profile.data()?.preferences?.priceNotifications !== true &&
+            profile.data()?.preferences?.emailPriceNotifications !== true)
         )
           return;
         const ref = database
           .collection("storeNotifications")
           .doc(C.hash(doc.data().uid, "price:" + job.id));
         if ((await tx.get(ref)).exists) return;
+        const receipt = database
+          .collection("storeCommerceNotificationReceipts")
+          .doc(C.hash(doc.data().uid, "price:" + job.id));
+        if ((await tx.get(receipt)).exists) return;
         C.notification(
           tx,
           database,
@@ -51,7 +56,13 @@ async function priceNotifications() {
             planKey: row.planKey,
             priceKurus: row.priceKurus,
           },
+          { site: profile.data()?.preferences?.priceNotifications === true },
         );
+        tx.create(receipt, {
+          uid: doc.data().uid,
+          type: "price",
+          createdAt: Date.now(),
+        });
       });
     await job.ref.update({
       cursor: watchers.docs.at(-1)?.id || row.cursor || "",
@@ -85,7 +96,8 @@ async function stockNotifications() {
       if (
         available > 0 &&
         (fresh.data().lastAvailable || 0) === 0 &&
-        profile.data()?.preferences?.stockNotifications === true
+        (profile.data()?.preferences?.stockNotifications === true ||
+          profile.data()?.preferences?.emailStockNotifications === true)
       )
         C.notification(
           tx,
@@ -95,6 +107,7 @@ async function stockNotifications() {
           "Takip ettiğin ürün stokta",
           "Güncel paket ve stok durumunu inceleyebilirsin.",
           { productId: row.productId },
+          { site: profile.data()?.preferences?.stockNotifications === true },
         );
       tx.update(doc.ref, { checkedAt: Date.now(), lastAvailable: available });
     });
@@ -124,7 +137,8 @@ async function licenseReminders() {
         : null;
       if (
         order.data()?.status === "delivered" &&
-        profile?.data()?.preferences?.licenseReminders === true
+        (profile?.data()?.preferences?.licenseReminders === true ||
+          profile?.data()?.preferences?.emailLicenseReminders === true)
       )
         C.notification(
           tx,
@@ -134,6 +148,7 @@ async function licenseReminders() {
           "Lisans süren yaklaşıyor",
           "Doğrulanmış bitiş tarihini siparişinde inceleyebilirsin.",
           { orderId: doc.id, expiresAt: row.license.expiresAt },
+          { site: profile?.data()?.preferences?.licenseReminders === true },
         );
       tx.update(doc.ref, {
         licenseReminderDueAt: 0,

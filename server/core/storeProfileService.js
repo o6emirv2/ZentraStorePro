@@ -97,6 +97,7 @@ async function updateProfileUsername(uid = '', authUser = {}, input = {}) {
       updatedAt: now
     };
     transaction.set(userRef, patch, { merge: true });
+    require('../email/service').enqueue(transaction, db, { uid: safeUid, type: 'username_changed', key: String(used + 1), data: { previous: oldUsername, current: username }, now });
     committed = normalizeStoreProfile({ ...profile, ...patch }, { ...authUser, uid: safeUid });
   });
   return committed;

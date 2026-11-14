@@ -52,11 +52,19 @@ async function applicationFixture({ additionalOrigins = [], canonicalOrigin = ''
   const uploadedImages = new Map();
   const firebaseAdmin = { ...admin, storage: () => ({ bucket: () => ({ file: name => ({ name, save: async (bytes, options) => uploadedImages.set(name, { bytes, options }), delete: async () => uploadedImages.delete(name) }) }) }) };
   mockModule('../../server/config/firebaseAdmin', { initFirebaseAdmin: () => ({ enabled: true, app: {}, db, auth, admin: firebaseAdmin, appCheck: { verifyToken: async token => { if (token !== 'fixture-appcheck') throw new Error('invalid fixture appcheck'); return { app_id: 'fixture' }; } } }) });
+  let passwordChanges = 0;
   const originalFetch = global.fetch;
   global.fetch = async (url, options) => {
     if (!String(url).startsWith('https://identitytoolkit.googleapis.com/')) return originalFetch(url, options);
-    const input = JSON.parse(options.body), user = [...users.values()].find(row => row.email === input.email), ok = !!user && !user.disabled && user.password === input.password;
-    return { ok, status: ok ? 200 : 400, json: async () => ok ? { localId: user.uid, email: user.email } : { error: { message: 'INVALID_LOGIN_CREDENTIALS' } } };
+    const input = JSON.parse(options.body);
+    if (String(url).includes('accounts:update')) {
+      let claims;
+      try { claims = verified(input.idToken, idTokens); } catch { return { ok: false, status: 400, json: async () => ({ error: { message: 'INVALID_ID_TOKEN' } }) }; }
+      const user = users.get(claims.uid); user.password = input.password; user.generation++; passwordChanges++;
+      return { ok: true, status: 200, json: async () => ({ localId: user.uid, email: user.email }) };
+    }
+    const user = [...users.values()].find(row => row.email === input.email), ok = !!user && !user.disabled && user.password === input.password;
+    return { ok, status: ok ? 200 : 400, json: async () => ok ? { localId: user.uid, email: user.email, idToken: idToken(user.uid) } : { error: { message: 'INVALID_LOGIN_CREDENTIALS' } } };
   };
   const { app } = require('../../server.js'); server.on('request', app);
   const requests = [];
@@ -80,7 +88,7 @@ async function applicationFixture({ additionalOrigins = [], canonicalOrigin = ''
     if (proof.status !== 200) return proof;
     return request(path, { ...session, method, body, headers: { 'x-admin-action': proof.body.proof.token } });
   }
-  return { app, origin, db, auth, users, uploadedImages, password, four, five, totp, idToken, request, requests, openAdmin, adminWrite,
+  return { app, origin, db, auth, users, uploadedImages, password, four, five, totp, idToken, request, requests, openAdmin, adminWrite, get passwordChanges() { return passwordChanges; },
     exchangeCustomToken: token => { const uid = customTokens.get(token); if (!uid) throw notFound(); return { ...publicUser(uid), idToken: idToken(uid) }; },
     close: async () => { await new Promise(resolve => server.close(resolve)); global.fetch = originalFetch; } };
 }

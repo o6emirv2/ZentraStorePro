@@ -8,6 +8,7 @@ const { verifyFirebasePassword } = require("./adminGateService");
 const transient = require("./adminTransientStore");
 const TTL_MS = 90_000;
 const TARGETS = [
+  ["POST", /^\/api\/admin\/store\/commerce\/email\/test$/, "store.operations.write"],
   [
     "PUT",
     /^\/api\/admin\/store\/commerce\/settings$/,
