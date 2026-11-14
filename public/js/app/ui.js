@@ -1,4 +1,5 @@
-import { imageVariants } from "./images.mjs?v=93";
+import { translate } from "./preferences.mjs?v=94";
+import { imageVariants } from "./images.mjs?v=94";
 export const escape = (value = "") =>
   String(value ?? "").replace(
     /[&<>"']/g,
@@ -8,18 +9,29 @@ export const escape = (value = "") =>
       ],
   );
 export const money = (value) =>
-  new Intl.NumberFormat("tr-TR", {
-    style: "currency",
-    currency: "TRY",
-    maximumFractionDigits: 2,
-  }).format((Number(value) || 0) / 100);
+  new Intl.NumberFormat(
+    typeof document !== "undefined" && document.documentElement?.lang === "en"
+      ? "en-GB"
+      : "tr-TR",
+    {
+      style: "currency",
+      currency: "TRY",
+      maximumFractionDigits: 2,
+    },
+  ).format((Number(value) || 0) / 100);
 export const date = (value) =>
   value
-    ? new Intl.DateTimeFormat("tr-TR", {
-        dateStyle: "medium",
-        timeStyle: "short",
-        timeZone: "Europe/Istanbul",
-      }).format(Number(value))
+    ? new Intl.DateTimeFormat(
+        typeof document !== "undefined" &&
+        document.documentElement?.lang === "en"
+          ? "en-GB"
+          : "tr-TR",
+        {
+          dateStyle: "medium",
+          timeStyle: "short",
+          timeZone: "Europe/Istanbul",
+        },
+      ).format(Number(value))
     : "—";
 const paths = {
   copy: "M9 9h12v12H9zM15 9V3H3v12h6",
@@ -105,6 +117,7 @@ export function modal({
   document.body.append(dlg);
   document.documentElement.classList.add("dialog-open");
   dlg.showModal();
+  translate(dlg);
   let pending = false;
   const close = () => {
     if (pending) return;

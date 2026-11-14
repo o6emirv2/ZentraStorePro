@@ -1,7 +1,8 @@
-import { dismissPrivateDialogs } from "../public/js/app/session-view.mjs?v=93";
-import "../public/js/app/device.js?v=93";
-import { presentScreen } from "../public/js/app/motion.mjs?v=93";
-import { metricLabel, metricValue } from "./metrics.mjs?v=93";
+import { createCommerceWorkspace } from "./commerce.js?v=94";
+import { dismissPrivateDialogs } from "../public/js/app/session-view.mjs?v=94";
+import "../public/js/app/device.js?v=94";
+import { presentScreen } from "../public/js/app/motion.mjs?v=94";
+import { metricLabel, metricValue } from "./metrics.mjs?v=94";
 import {
   escape as e,
   brand,
@@ -17,13 +18,25 @@ import {
   statusNames,
   safeImage,
   empty,
-} from "../public/js/app/ui.js?v=93";
+} from "../public/js/app/ui.js?v=94";
 import {
   CATEGORY_PRESETS,
   GAME_KEYS,
 } from "../public/js/store/catalog-schema.mjs";
 import { prepareProductImage } from "./product-image-upload.js?v=zentra-ui-v90r1";
 const views = [
+  ["commerce-catalog", "edit", "İçerik stüdyosu", "store.catalog.read"],
+  ["commerce-support", "support", "Müşteri deneyimi", "store.support.read"],
+  ["commerce-bulk", "grid", "Toplu ürün işlemleri", "store.catalog.write"],
+  ["commerce-reports", "chart", "Satış ve maliyet", "store.analytics.read"],
+  [
+    "commerce-operations",
+    "settings",
+    "Sistem operasyonları",
+    "store.security.read",
+  ],
+  ["commerce-backups", "shield", "Yedek ve geri dönüş", "store.backups.write"],
+  ["commerce-privacy", "user", "Veri talepleri", "store.privacy.write"],
   ["overview", "chart", "Genel bakış", "store.overview.read"],
   ["orders", "bag", "Siparişler", "store.orders.read"],
   ["products", "box", "Ürünler", "store.catalog.read"],
@@ -38,6 +51,7 @@ const views = [
   ["settings", "settings", "Mağaza ayarları", "store.content.read"],
   ["staff", "user", "Ekip & roller", "store.staff.read"],
 ];
+let commerceWorkspace;
 let api,
   context,
   root,
@@ -131,21 +145,23 @@ async function show() {
     ).join("") +
     "</div>";
   try {
-    const markup = await {
-      overview,
-      orders,
-      products,
-      inventory,
-      experienceView,
-      promotions,
-      users,
-      wallet,
-      links,
-      audit,
-      security,
-      settings,
-      staff,
-    }[currentView === "experience" ? "experienceView" : currentView]();
+    const markup = currentView.startsWith("commerce-")
+      ? await commerceWorkspace.render(currentView)
+      : await {
+          overview,
+          orders,
+          products,
+          inventory,
+          experienceView,
+          promotions,
+          users,
+          wallet,
+          links,
+          audit,
+          security,
+          settings,
+          staff,
+        }[currentView === "experience" ? "experienceView" : currentView]();
     if (v !== version) return;
     await presentScreen(main, markup, { isCurrent: () => v === version });
     if (v !== version) return;
@@ -277,7 +293,7 @@ async function orders() {
       )
       .join(
         "",
-      )}</select></label>${button("orders-reset", "Baştan yenile", "arrow")}<span class="result-count">Bu sayfada ${rows.length} sipariş</span></div><div id="job-slot"></div>${rows.length ? rows.map((o) => `<article class="order-card"><header><div><b>#${e(o.orderNumber || o.id)}</b><small>${e(o.username || o.uid)} · ${date(o.createdAt)}</small></div>${status(o.status)}</header>${(o.items || []).map((x) => `<div class="order-line"><div><b>${e(x.productName)}</b><small>${e(x.planLabel)} · ${x.quantity} adet</small></div><span>${money(x.lineTotalKurus)}</span></div>`).join("")}<p class="order-payment">Kanal: ${o.paymentMethod === "telegram" ? "Telegram" : o.paymentMethod === "wallet" ? "Bakiye" : "İnceleme gerekli"} · Ödeme: ${e({ captured: "Tahsil edildi", refunded: "İade tamamlandı", confirmed_manually: "Manuel teyit", pending: "Bekliyor" }[o.paymentState] || o.paymentWorkflow?.label || "Doğrulanmalı")}</p><footer><strong>${money(o.totalKurus)}</strong>${can("store.orders.write") ? button("order-status", "Yeni durum", "edit", `data-id="${e(o.id)}"`) : ""}</footer></article>`).join("") : '<div class="panel admin-empty">Bu filtreyle eşleşen sipariş yok.</div>'}${orderCursor ? `<div class="admin-pagination">${button("orders-next", "Sonraki sayfa", "arrow")}</div>` : ""}`
+      )}</select></label>${button("orders-reset", "Baştan yenile", "arrow")}<span class="result-count">Bu sayfada ${rows.length} sipariş</span></div><div id="job-slot"></div>${rows.length ? rows.map((o) => `<article class="order-card"><header><div><b>#${e(o.orderNumber || o.id)}</b><small>${e(o.username || o.uid)} · ${date(o.createdAt)}</small></div>${status(o.status)}</header>${(o.items || []).map((x) => `<div class="order-line"><div><b>${e(x.productName)}</b><small>${e(x.planLabel)} · ${x.quantity} adet</small></div><span>${money(x.lineTotalKurus)}</span></div>`).join("")}<p class="order-payment">Kanal: ${o.paymentMethod === "telegram" ? "Telegram" : o.paymentMethod === "wallet" ? "Bakiye" : "İnceleme gerekli"} · Ödeme: ${e({ captured: "Tahsil edildi", refunded: "İade tamamlandı", confirmed_manually: "Manuel teyit", pending: "Bekliyor" }[o.paymentState] || o.paymentWorkflow?.label || "Doğrulanmalı")}</p><footer><strong>${money(o.totalKurus)}</strong>${can("store.orders.write") ? button("order-status", "Yeni durum", "edit", `data-id="${e(o.id)}"`) + `<button class="button secondary small" type="button" data-commerce-admin="assign-order" data-id="${e(o.id)}">Sorumlu ata</button>` : ""}</footer></article>`).join("") : '<div class="panel admin-empty">Bu filtreyle eşleşen sipariş yok.</div>'}${orderCursor ? `<div class="admin-pagination">${button("orders-next", "Sonraki sayfa", "arrow")}</div>` : ""}`
   );
 }
 async function loadAdminCatalog() {
@@ -907,7 +923,7 @@ function campaignEditor(c) {
         ["fixed", "Sabit tutar (₺)"],
       ],
       value.type || "percent",
-    )}${field("value", "İndirim değeri", "number", value.type === "fixed" ? value.value / 100 : value.value || 10, 'required min="0.01" step="0.01"')}${field("minimum", "Asgari sepet (₺)", "number", (value.minimumSubtotalKurus || 0) / 100, 'min="0" step="0.01"')}<div class="field-row">${field("startsAt", "Başlangıç (Türkiye saati)", "datetime-local", localDate(value.startsAt))}${field("endsAt", "Bitiş (Türkiye saati)", "datetime-local", localDate(value.endsAt))}</div><div class="field-row">${field("usageLimit", "Toplam kullanım limiti (0: sınırsız)", "number", value.usageLimit || 0, 'required min="0" step="1"')}${field("perUserLimit", "Kişi başı limit", "number", value.perUserLimit || 1, 'required min="1" step="1"')}</div>${check("active", "Kampanya etkin", value.active !== false)}${check("public", "Müşterilerin kuponlarında göster", value.visibleInWallet !== false)}`,
+    )}${field("value", "İndirim değeri", "number", value.type === "fixed" ? value.value / 100 : value.value || 10, 'required min="0.01" step="0.01"')}${field("minimum", "Asgari sepet (₺)", "number", (value.minimumSubtotalKurus || 0) / 100, 'min="0" step="0.01"')}<div class="field-row">${field("startsAt", "Başlangıç (Türkiye saati)", "datetime-local", localDate(value.startsAt))}${field("endsAt", "Bitiş (Türkiye saati)", "datetime-local", localDate(value.endsAt))}</div><div class="field-row">${field("usageLimit", "Toplam kullanım limiti (0: sınırsız)", "number", value.usageLimit || 0, 'required min="0" step="1"')}${field("perUserLimit", "Kişi başı limit", "number", value.perUserLimit || 1, 'required min="1" step="1"')}</div>${field("scopeProducts", "Ürün kimlikleri (virgülle, boş: tümü)", "text", (value.productIds || []).join(","), 'maxlength="4000"')}${field("scopePlans", "Paket anahtarları (virgülle, boş: tümü)", "text", (value.planKeys || []).join(","), 'maxlength="500"')}${field("scopeUsers", "Hesap UID kapsamı (virgülle, boş: tümü)", "text", (value.customerUids || []).join(","), 'maxlength="13000"')}${check("active", "Kampanya etkin", value.active !== false)}${check("public", "Müşterilerin kuponlarında göster", value.visibleInWallet !== false)}`,
     build: (data) => {
       if (isBalance)
         throw new Error("Bakiye kodlarını bakiye yönetimi bölümünden düzenle.");
@@ -923,6 +939,18 @@ function campaignEditor(c) {
         endsAt: parseLocalDate(data.get("endsAt")),
         usageLimit: Number(data.get("usageLimit")),
         perUserLimit: Number(data.get("perUserLimit")),
+        productIds: String(data.get("scopeProducts") || "")
+          .split(",")
+          .map((x) => x.trim())
+          .filter(Boolean),
+        planKeys: String(data.get("scopePlans") || "")
+          .split(",")
+          .map((x) => x.trim())
+          .filter(Boolean),
+        customerUids: String(data.get("scopeUsers") || "")
+          .split(",")
+          .map((x) => x.trim())
+          .filter(Boolean),
         active: data.has("active"),
         visibleInWallet: data.has("public"),
         createOnly: !c,
@@ -1358,6 +1386,8 @@ function submit(event) {
   }
 }
 export function unmountWorkspace() {
+  commerceWorkspace?.dispose();
+  commerceWorkspace = null;
   mounted = false;
   ++version;
   clearTimeout(jobTimer);
@@ -1381,6 +1411,12 @@ export async function mountWorkspace(options) {
   unmountWorkspace();
   ({ root, context, api, onLogout } = options);
   mounted = true;
+  commerceWorkspace = createCommerceWorkspace({
+    api,
+    can,
+    refresh: show,
+    context,
+  });
   const generation = ++version;
   filterStatus = "";
   orderCursor = "";

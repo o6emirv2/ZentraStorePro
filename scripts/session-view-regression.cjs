@@ -135,7 +135,7 @@ test("admin invalidation removes listeners, clears private dialogs and prevents 
     globalThis.location = { hash: "#panel/overview" };
     globalThis.sessionStorage = { getItem: () => null };
     const workspace = await browserModule("admin/workspace.js", {
-      'import "../public/js/app/device.js?v=93";': "",
+      'import "../public/js/app/device.js?v=94";': "",
     });
     let finish,
       calls = 0;
@@ -187,7 +187,7 @@ test("admin invalidation removes listeners, clears private dialogs and prevents 
     });
     assert(root.innerHTML.includes("new-owner"));
     assert.equal(f.windows.get("hashchange").size, 1);
-    assert.equal(f.listeners.get("click").size, 1);
+    assert.equal(f.listeners.get("click").size, 2);
     workspace.unmountWorkspace();
     let finishStock;
     const lateStock = new Promise((resolve) => {

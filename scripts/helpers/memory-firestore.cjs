@@ -28,14 +28,14 @@ function memoryFirestore(initial = []) {
         stats.queries++; if (queryHook) await queryHook(path);
         let rows = [...records].filter(([key, row]) => key.startsWith(path + '/') && !key.slice(path.length + 1).includes('/')
           && filters.every(([field, op, value]) => {
-            const actual = field === '__name__' ? key.split('/').at(-1) : row[field];
+            const actual = field === '__name__' ? key.split('/').at(-1) : field.split('.').reduce((v,k)=>v?.[k],row);
             return op === '==' ? actual === value : op === 'in' ? value.includes(actual)
               : op === '<=' ? actual <= value : op === '>=' ? actual >= value : op === '>' ? actual > value : actual < value;
           }));
         const compare = (a, b) => {
           for (const [field, direction] of orders) {
-            const left = field === '__name__' ? a[0].split('/').at(-1) : a[1][field];
-            const right = field === '__name__' ? b[0].split('/').at(-1) : b[1][field];
+            const left = field === '__name__' ? a[0].split('/').at(-1) : field.split('.').reduce((v,k)=>v?.[k],a[1]);
+            const right = field === '__name__' ? b[0].split('/').at(-1) : field.split('.').reduce((v,k)=>v?.[k],b[1]);
             if (left !== right) return (left < right ? -1 : 1) * (direction === 'desc' ? -1 : 1);
           }
           return a[0].localeCompare(b[0]);

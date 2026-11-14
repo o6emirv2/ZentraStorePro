@@ -1,15 +1,18 @@
+import { initPwa, installStore } from "./pwa.js?v=94";
+import { createCommerceClient } from "./commerce-client.js?v=94";
+import { translate, tr } from "./preferences.mjs?v=94";
 import {
   authMode,
   authPath,
   safeReturnTo,
   syncNavigation,
   measureHeader,
-} from "./navigation.mjs?v=93";
-import { clearCustomerSessionView } from "./session-view.mjs?v=93";
-import "./device.js?v=93";
-import { presentScreen } from "./motion.mjs?v=93";
-import { productGallery, galleryIndex } from "./gallery.mjs?v=93";
-import { filterProducts } from "./catalog.mjs?v=93";
+} from "./navigation.mjs?v=94";
+import { clearCustomerSessionView } from "./session-view.mjs?v=94";
+import "./device.js?v=94";
+import { presentScreen } from "./motion.mjs?v=94";
+import { productGallery, galleryIndex } from "./gallery.mjs?v=94";
+import { filterProducts } from "./catalog.mjs?v=94";
 import {
   storeApi,
   loadStoreRuntimeConfig,
@@ -29,7 +32,7 @@ import {
   changeStorePassword,
 } from "../store/auth.js?v=zentra-ui-v90r1";
 import { createPurchaseTracker } from "../store/purchase-tracker.js?v=zentra-ui-v90r1";
-import { createCart, priceCart, checkoutState } from "./cart.mjs?v=93";
+import { createCart, priceCart, checkoutState } from "./cart.mjs?v=94";
 import {
   escape as e,
   money,
@@ -43,7 +46,7 @@ import {
   status,
   safeImage,
   copyText,
-} from "./ui.js?v=93";
+} from "./ui.js?v=94";
 const $ = (s) => document.querySelector(s),
   main = $("#main");
 let storage;
@@ -52,15 +55,6 @@ try {
 } catch {}
 const cart = createCart(storage);
 let favorites = new Set();
-try {
-  const raw = storage?.getItem("zentra-favorites-v2");
-  if (raw && raw.length < 12000)
-    favorites = new Set(
-      JSON.parse(raw)
-        .filter((x) => typeof x === "string" && /^[a-z0-9-]{1,80}$/.test(x))
-        .slice(0, 150),
-    );
-} catch {}
 const state = {
   catalog: null,
   catalogError: "",
@@ -74,6 +68,7 @@ const state = {
   promotion: null,
   checkoutBusy: false,
   render: 0,
+  giftRecipient: "",
   selectedPlans: new Map(),
   selectedImages: new Map(),
 };
@@ -82,6 +77,24 @@ const tracker = createPurchaseTracker({
   userId: () => state.auth.user?.uid || "",
 });
 const uid = () => state.auth.user?.uid || "";
+cart.owner("");
+const commerce = createCommerceClient({
+  api: storeApi,
+  userId: uid,
+  cart,
+  getFavorites: () => favorites,
+  setFavorites: (values) => {
+    favorites = new Set(values);
+  },
+  getProduct: product,
+  navigate: go,
+  refresh: () => {
+    header();
+    return render();
+  },
+  logout: logoutStore,
+});
+
 const userName = () =>
   state.auth.account?.username ||
   state.auth.user?.displayName ||
@@ -113,7 +126,7 @@ function go(path, { replace = false } = {}) {
   window.scrollTo({ top: 0, behavior: "instant" });
 }
 function product(id) {
-  return state.catalog?.products?.find((p) => p.id === id);
+  return state.catalog?.products?.find((p) => p.id === id || p.seoSlug === id);
 }
 function cartView() {
   return priceCart(cart.items(), state.catalog);
@@ -136,7 +149,12 @@ function stockLabel(p) {
   if (p.fulfillmentMode === "telegram_only") return "Telegram ile";
   if (p.stock?.state === "unverified" || state.catalog?.stockVerified === false)
     return "Stok doğrulanamadı";
-  return p.stock?.available > 0 ? "Stokta" : "Stok bekleniyor";
+  const count = Number(p.stock?.available || 0);
+  return count >= 10 && count <= 35
+    ? `Stokta · Son ${count} adet`
+    : count > 0
+      ? "Stokta"
+      : "Stok bekleniyor";
 }
 function card(p) {
   const plan = p.plans.reduce(
@@ -222,8 +240,8 @@ function packagePicker(id) {
     title: "Paketini seç",
     body: `<div class="quick-product"><img src="${e(safeImage(p.image))}" alt="" width="76" height="76"/><div><b>${e(p.name)}</b><small>${e(p.platform === "ios" ? "iOS" : "Android")} · ${e(stockLabel(p))}</small></div></div><fieldset class="quick-plans"><legend class="sr-only">Ürün paketleri</legend>${p.plans.map((plan, i) => `<label class="quick-plan"><input type="radio" name="planKey" value="${e(plan.key)}" ${i === 0 ? "checked" : ""} required/><span><b>${e(plan.label)}</b><small>${e(plan.duration)}</small></span><strong>${money(plan.priceKurus)}</strong></label>`).join("")}</fieldset><p class="fine-print" style="margin-top:18px">Kesin fiyat ve stok sipariş sırasında sunucuda doğrulanır.</p>`,
     submit: "Sepete ekle",
-    onSubmit: (data) => {
-      add(id, data.get("planKey"));
+    onSubmit: async (data) => {
+      await add(id, data.get("planKey"));
     },
   });
 }
@@ -234,7 +252,10 @@ function detail(id) {
       "Bu ürün bulunamadı",
       "Ürün yayından kaldırılmış olabilir. Güncel mağazayı inceleyebilirsin.",
     );
-  let key = state.selectedPlans.get(id) || p.plans[0]?.key,
+  let key =
+      state.selectedPlans.get(p.id) ||
+      route().query.get("paket") ||
+      p.plans[0]?.key,
     plan = p.plans.find((x) => x.key === key) || p.plans[0];
   return `<div class="breadcrumb"><a href="/" data-nav>Ana sayfa</a><span>/</span><a href="/kategori/${e(p.platform)}" data-nav>${p.platform === "ios" ? "iOS" : "Android"}</a><span>/</span><span>${e(p.name)}</span></div><section class="detail-grid">${galleryMarkup(p)}<div class="detail-info"><span class="eyebrow">${e(p.game)} · ${p.platform === "ios" ? "iOS" : "ANDROID"}</span><h1>${e(p.name)}</h1><span class="status-pill ${p.stock?.available ? "green" : "amber"}">${e(stockLabel(p))}</span><p class="detail-description">${e(p.description)}</p>${p.features?.length ? `<ul class="detail-features">${p.features.map((x) => `<li>✓ ${e(x)}</li>`).join("")}</ul>` : ""}<fieldset class="plan-options" aria-label="Paket seçimi" style="border:0;padding:0">${p.plans.map((x) => `<label class="plan-option"><input type="radio" name="product-plan" value="${e(x.key)}" ${x.key === plan.key ? "checked" : ""} data-product="${e(p.id)}"/><span>${e(x.label)}<b>${money(x.priceKurus)}</b><small>${e(x.duration)}</small></span></label>`).join("")}</fieldset><div class="detail-price">${money(plan.priceKurus)}</div><div class="detail-actions"><button class="button primary" data-action="add" data-id="${e(p.id)}" data-plan="${e(plan.key)}">${icon("bag")} Sepete ekle</button><button class="button outline" data-action="favorite" data-id="${e(p.id)}" aria-pressed="${favorites.has(p.id)}">${icon("heart")} ${favorites.has(p.id) ? "Favorilerinde" : "Favorilere ekle"}</button></div><p class="detail-trust">${icon("shield")} Fiyat ve stok, sipariş sırasında sunucuda doğrulanır.</p>${p.fulfillmentMode === "telegram_only" ? '<p class="fine-print">Bu ürün Telegram üzerinden görüşülerek teslim edilir. Otomatik teslimat uygulanmaz.</p>' : `<p class="fine-print">${plan.stock?.available > 0 ? "Uygun bakiye ve doğrulanmış stokla otomatik teslimat yapılır." : "Stok bulunmadığında Telegram üzerinden uygunluğu sorabilirsin."}</p>`}<button class="text-button fine-print" data-action="restock" data-id="${e(p.id)}" data-plan="${e(plan.key)}">${icon("bell")} Stok gelince haber ver</button></div></section><section class="catalog-section"><div class="section-heading"><h2>Keşfetmeye devam et.</h2></div><div class="product-grid">${state.catalog.products
     .filter((x) => x.id !== p.id && x.platform === p.platform)
@@ -286,7 +307,7 @@ function cartMarkup() {
       })
       .join(
         "",
-      )}</div><aside class="panel checkout-panel"><h2>Sipariş özeti</h2><div class="summary-row"><span>Ürünler</span><b>${money(view.totalKurus)}</b></div>${state.promotion ? `<div class="summary-row discount"><span>${e(state.promotion.code)} indirimi</span><b>−${money(state.promotion.discountKurus)}</b></div>` : ""}<div class="summary-row total"><span>Toplam</span><span>${money(Math.max(0, view.totalKurus - (state.promotion?.discountKurus || 0)))}</span></div><form class="coupon-input" id="coupon-form"><label class="sr-only" for="coupon-code">İndirim kodu</label><input id="coupon-code" name="code" placeholder="İndirim kodun var mı?" maxlength="32" required/><button class="button secondary small" type="submit">Uygula</button></form><fieldset class="payment-options" style="border:0;padding:0"><legend class="fine-print">Ödeme yöntemi</legend>${walletAllowed ? `<label class="payment-option"><input type="radio" name="payment" value="wallet" ${state.payment === "wallet" ? "checked" : ""}/><span><b>Bakiye ile öde</b><small>Hesap bakiyen: ${uid() ? (state.auth.account && !state.auth.accountStale ? money(state.auth.account.balanceKurus) : "Doğrulama bekleniyor") : "Giriş yaparak görüntüle"}</small></span></label>` : ""}<label class="payment-option"><input type="radio" name="payment" value="telegram" ${state.payment === "telegram" ? "checked" : ""}/><span><b>Telegram üzerinden görüş</b><small>Ödeme ve teslimat için destek ekibiyle iletişim kur.</small></span></label></fieldset><button class="button primary" data-action="checkout" ${gate.disabled ? "disabled" : ""}>${icon("shield")} ${e(gate.label)} ${icon("arrow")}</button>${gate.message ? `<p class="fine-print checkout-message" role="status">${e(gate.message)}</p>` : ""}<p class="fine-print">Kesin fiyat ve stok sipariş anında doğrulanır. Telegram siparişi, ödemenin onaylandığı anlamına gelmez.</p></aside></div>`
+      )}</div><aside class="panel checkout-panel"><h2>Sipariş özeti</h2><div class="summary-row"><span>Ürünler</span><b>${money(view.totalKurus)}</b></div>${state.promotion ? `<div class="summary-row discount"><span>${e(state.promotion.code)} indirimi</span><b>−${money(state.promotion.discountKurus)}</b></div>` : ""}<div class="summary-row total"><span>Toplam</span><span>${money(Math.max(0, view.totalKurus - (state.promotion?.discountKurus || 0)))}</span></div><form class="coupon-input" id="coupon-form"><label class="sr-only" for="coupon-code">İndirim kodu</label><input id="coupon-code" name="code" placeholder="İndirim kodun var mı?" maxlength="32" required/><button class="button secondary small" type="submit">Uygula</button></form><fieldset class="payment-options" style="border:0;padding:0"><legend class="fine-print">Ödeme yöntemi</legend>${walletAllowed ? `<label class="payment-option"><input type="radio" name="payment" value="wallet" ${state.payment === "wallet" ? "checked" : ""}/><span><b>Bakiye ile öde</b><small>Hesap bakiyen: ${uid() ? (state.auth.account && !state.auth.accountStale ? money(state.auth.account.balanceKurus) : "Doğrulama bekleniyor") : "Giriş yaparak görüntüle"}</small></span></label>` : ""}<label class="payment-option"><input type="radio" name="payment" value="telegram" ${state.payment === "telegram" ? "checked" : ""}/><span><b>Telegram üzerinden görüş</b><small>Ödeme ve teslimat için destek ekibiyle iletişim kur.</small></span></label></fieldset><label class="field"><span>Hediye alıcısı (isteğe bağlı)</span><input id="commerce-gift-recipient" value="${e(state.giftRecipient)}" maxlength="40" placeholder="Doğrulanmış kullanıcı adı" autocomplete="off"/><small>Yalnızca hediye gönderimine açık ürünlerde kullanılır.</small></label><button class="button primary" data-action="checkout" ${gate.disabled ? "disabled" : ""}>${icon("shield")} ${e(gate.label)} ${icon("arrow")}</button>${gate.message ? `<p class="fine-print checkout-message" role="status">${e(gate.message)}</p>` : ""}<p class="fine-print">Kesin fiyat ve stok sipariş anında doğrulanır. Telegram siparişi, ödemenin onaylandığı anlamına gelmez.</p></aside></div>`
   );
 }
 function avatarMarkup() {
@@ -332,7 +353,7 @@ function accountShell(content, active = "account") {
 function account() {
   const a = state.auth.account || {};
   return accountShell(
-    `<div class="welcome-panel"><div><span class="eyebrow">ZENTRA HESABIN</span><h2>Merhaba, ${e(a.firstName || userName())}.</h2><p>Siparişlerin ve dijital dünyan kontrolün altında.</p></div><div class="balance-number"><small>Kullanılabilir bakiyen</small>${!state.auth.account || state.auth.accountStale ? "Doğrulanamadı" : money(a.balanceKurus)}</div></div>${state.auth.warning ? `<div class="notice">${e(state.auth.warning)}</div>` : ""}<div class="account-card-grid"><div class="panel"><h2>Profil bilgilerin</h2><p>${e(a.firstName || "")} ${e(a.lastName || "")}<br/>${e(a.username || userName())}<br/>${e(a.birthDate || "Doğum tarihi kayıtlı değil")}</p><button class="button secondary small" data-action="profile">${icon("edit")} Bilgilerimi düzenle</button></div><div class="panel"><h2>Hesap güvenliği</h2><p>${e(state.auth.user.email)}<br/>${state.auth.user.emailVerified ? "E-posta doğrulanmış" : "E-posta henüz doğrulanmamış"}</p><button class="button secondary small" data-action="security">${icon("shield")} Güvenlik ayarları</button></div><div class="panel"><h2>Siparişlerin bir arada</h2><p>Ödeme durumunu, sipariş adımlarını ve teslimat bilgilerini hesabından takip et.</p><a class="button secondary small" href="/siparisler" data-nav>Siparişlerimi gör ${icon("arrow")}</a></div><div class="panel"><h2>Sana ait kodlar</h2><p>Bakiye kodunu hesabına tanımla, kullanılabilir indirimlerini incele.</p><a class="button secondary small" href="/kuponlar" data-nav>Kuponlarım ${icon("arrow")}</a></div></div>`,
+    `<div class="welcome-panel"><div><span class="eyebrow">ZENTRA HESABIN</span><h2>Merhaba, ${e(a.firstName || userName())}.</h2><p>Siparişlerin ve dijital dünyan kontrolün altında.</p></div><div class="balance-number"><small>Kullanılabilir bakiyen</small>${!state.auth.account || state.auth.accountStale ? "Doğrulanamadı" : money(a.balanceKurus)}</div></div>${state.auth.warning ? `<div class="notice">${e(state.auth.warning)}</div>` : ""}<button type="button" class="button secondary small" data-action="install-app">Uygulamayı yükle</button>${commerce.accountLinks()}<div class="account-card-grid"><div class="panel"><h2>Profil bilgilerin</h2><p>${e(a.firstName || "")} ${e(a.lastName || "")}<br/>${e(a.username || userName())}<br/>${e(a.birthDate || "Doğum tarihi kayıtlı değil")}</p><button class="button secondary small" data-action="profile">${icon("edit")} Bilgilerimi düzenle</button></div><div class="panel"><h2>Hesap güvenliği</h2><p>${e(state.auth.user.email)}<br/>${state.auth.user.emailVerified ? "E-posta doğrulanmış" : "E-posta henüz doğrulanmamış"}</p><button class="button secondary small" data-action="security">${icon("shield")} Güvenlik ayarları</button></div><div class="panel"><h2>Siparişlerin bir arada</h2><p>Ödeme durumunu, sipariş adımlarını ve teslimat bilgilerini hesabından takip et.</p><a class="button secondary small" href="/siparisler" data-nav>Siparişlerimi gör ${icon("arrow")}</a></div><div class="panel"><h2>Sana ait kodlar</h2><p>Bakiye kodunu hesabına tanımla, kullanılabilir indirimlerini incele.</p><a class="button secondary small" href="/kuponlar" data-nav>Kuponlarım ${icon("arrow")}</a></div></div>`,
   );
 }
 function orderCard(o) {
@@ -349,7 +370,7 @@ function orderCard(o) {
     }[o.paymentState] ||
     o.paymentWorkflow?.label ||
     "Doğrulanıyor";
-  return `<article class="order-card"><header><div><b>#${e(o.orderNumber || o.id)}</b><small>${date(o.createdAt)}</small></div>${status(o.status)}</header>${(o.items || []).map((x) => `<div class="order-line"><div><b>${e(x.productName)}</b><small>${e(x.planLabel)} · ${x.quantity} adet</small></div><span>${money(x.lineTotalKurus)}</span></div>`).join("")}<p class="order-payment">${o.paymentMethod === "telegram" ? "Telegram" : o.paymentMethod === "wallet" ? "Bakiye" : "Ödeme kanalı incelenmeli"} · ${e(payment)}</p><footer><strong>${money(o.totalKurus)}</strong>${o.delivery?.canOpen ? `<button class="button primary small" data-action="delivery" data-id="${e(o.id)}">Teslimatımı aç</button>` : ""}${o.telegramUrl && /^https:\/\/t\.me\//.test(o.telegramUrl) ? `<a class="button secondary small" href="${e(o.telegramUrl)}" target="_blank" rel="noopener noreferrer">Telegram ${icon("arrow")}</a>` : ""}${o.cancellable ? `<button class="button secondary small" data-action="cancel-order" data-id="${e(o.id)}">İptal et</button>` : ""}</footer></article>`;
+  return `<article class="order-card"><header><div><b>#${e(o.orderNumber || o.id)}</b><small>${date(o.createdAt)}</small></div>${status(o.status)}</header>${(o.items || []).map((x) => `<div class="order-line"><div><b>${e(x.productName)}</b><small>${e(x.planLabel)} · ${x.quantity} adet</small></div><span>${money(x.lineTotalKurus)}</span></div>`).join("")}<p class="order-payment">${o.paymentMethod === "telegram" ? "Telegram" : o.paymentMethod === "wallet" ? "Bakiye" : "Ödeme kanalı incelenmeli"} · ${e(payment)}</p><footer><strong>${money(o.totalKurus)}</strong>${o.delivery?.canOpen ? `<button class="button primary small" data-action="delivery" data-id="${e(o.id)}">Teslimatımı aç</button>` : ""}${o.telegramUrl && /^https:\/\/t\.me\//.test(o.telegramUrl) ? `<a class="button secondary small" href="${e(o.telegramUrl)}" target="_blank" rel="noopener noreferrer">Telegram ${icon("arrow")}</a>` : ""}${o.cancellable ? `<button class="button secondary small" data-action="cancel-order" data-id="${e(o.id)}">İptal et</button>` : ""}</footer><div class="commerce-order-actions"><button type="button" class="button secondary small" data-commerce="order" data-id="${e(o.id)}">Sipariş adımları</button><button type="button" class="button secondary small" data-commerce="reorder" data-id="${e(o.id)}">Tekrar sipariş ver</button>${o.status === "delivered" ? `<button type="button" class="button secondary small" data-commerce="review" data-id="${e(o.id)}" data-products="${e(JSON.stringify(o.items.map((x) => ({ id: x.productId, name: x.productName }))))}">Değerlendirme yaz</button>` : ""}</div></article>`;
 }
 function orders() {
   return accountShell(
@@ -409,7 +430,11 @@ async function render() {
   const version = ++state.render,
     r = route();
   const paint = (markup) =>
-    presentScreen(main, markup, { isCurrent: () => version === state.render });
+    presentScreen(main, markup, {
+      isCurrent: () => version === state.render,
+    }).then(() => {
+      if (version === state.render) translate(document.body);
+    });
   header();
   const titles = {
     home: "Android ve iOS ürünleri",
@@ -462,7 +487,77 @@ async function render() {
         );
       return;
     }
-    if (r.name === "orders") {
+    if (r.name === "product" && !product(r.id)) {
+      try {
+        const info = await commerce.productInfo(r.id);
+        if (version !== state.render) return;
+        const resolved = state.catalog.products.find(
+          (p) => p.id === info.product.productId,
+        );
+        if (resolved) resolved.seoSlug = r.id;
+      } catch (error) {
+        if (error.status !== 404) throw error;
+      }
+    }
+    if (r.name === "account" && r.query.has("bolum")) {
+      const markup = await commerce.accountSection(r.query.get("bolum"));
+      if (version !== state.render) return;
+      await paint(markup ? accountShell(markup) : account());
+    } else if (r.name === "product" && product(r.id)) {
+      let info;
+      try {
+        info = await commerce.productInfo(r.id);
+      } catch (error) {
+        info = null;
+      }
+      if (version !== state.render) return;
+      if (info) product(r.id).gallery = info.product.gallery;
+      if (info?.product?.seo) {
+        const seo = info.product.seo;
+        document.title = (seo.title || product(r.id).name) + " | Zentra Store";
+        if (seo.description)
+          document
+            .querySelector("meta[name=description]")
+            ?.setAttribute("content", seo.description);
+        document
+          .querySelector("link[rel=canonical]")
+          ?.setAttribute(
+            "href",
+            new URL("/urun/" + (seo.slug || product(r.id).id), location.origin)
+              .href,
+          );
+      }
+      await paint(
+        detail(r.id) +
+          commerce.productExtras(
+            product(r.id),
+            info,
+            state.selectedPlans.get(product(r.id).id) ||
+              r.query.get("paket") ||
+              product(r.id).plans[0]?.key,
+          ),
+      );
+      void commerce
+        .call("/events", {
+          auth: false,
+          body: {
+            productId: r.id,
+            event: "view",
+            eventId: crypto.randomUUID(),
+          },
+        })
+        .catch(() => {});
+    } else if (r.name === "support") {
+      let knowledge;
+      try {
+        knowledge = await commerce.call("/knowledge", { auth: false });
+      } catch {}
+      if (version !== state.render) return;
+      await paint(
+        support() +
+          `<section class="panel"><h2>${tr("Bilgi merkezi", "Knowledge center")}</h2>${knowledge ? knowledge.articles.map((x) => `<details><summary>${e(x.title)}</summary><p data-user-content>${e(x.body)}</p></details>`).join("") || `<p>${tr("Henüz yayımlanmış ek yazı yok.", "No additional articles have been published yet.")}</p>` : `<p>${tr("Bilgi merkezi şu anda doğrulanamadı.", "Knowledge center could not be verified.")}</p>`}<a class="button secondary small" href="/hesabim?bolum=support" data-nav>${tr("Sipariş desteği", "Order support")}</a></section>`,
+      );
+    } else if (r.name === "orders") {
       if (!state.ordersLoaded) {
         await paint(
           '<div class="empty-state"><span class="spinner"></span><p>Siparişlerin yükleniyor…</p></div>',
@@ -560,13 +655,28 @@ async function loadCatalog() {
   }
   await render();
 }
-function add(id, key) {
+async function add(id, key) {
+  const addingUid = uid();
+  if (!uid()) {
+    state.selectedPlans.set(id, key);
+    go(
+      authPath(
+        "login",
+        "/urun/" + encodeURIComponent(id) + "?paket=" + encodeURIComponent(key),
+      ),
+    );
+    toast("Sepete eklemek için giriş yap.", "info");
+    return;
+  }
   if (tracker.pending())
     throw new Error("Önce sonucu belirsiz siparişini kontrol et.");
   const p = product(id);
   if (!p || !p.plans.some((x) => x.key === key))
     throw new Error("Paket doğrulanamadı.");
+  if (!(await commerce.confirmCompatibility(p, key)) || addingUid !== uid())
+    return;
   cart.add(id, key);
+  await commerce.saveCart();
   state.promotion = null;
   header();
   toast("Ürün sepetine eklendi.");
@@ -580,7 +690,11 @@ function authRequired() {
 function completeOrder(result, attempt) {
   if (attempt.uid !== uid()) return;
   tracker.finish(attempt);
-  if (attempt.clearCart) cart.clear();
+  if (attempt.clearCart) {
+    state.giftRecipient = "";
+    cart.clear();
+    void commerce.saveCart().catch((error) => toast(message(error), "error"));
+  }
   state.ordersLoaded = false;
   state.promotion = null;
   void refreshStoreAccount({ force: true }).catch(() => {});
@@ -636,39 +750,58 @@ async function recover(button) {
 async function checkout(button) {
   if (authRequired() || state.checkoutBusy) return;
   if (tracker.pending()) return recover(button);
+  const buyingUid = uid();
   const view = cartView();
   if (!view.lines.length || view.invalid.length)
     throw new Error("Sepetini kontrol et.");
   state.checkoutBusy = true;
   busy(button, true, "Sipariş doğrulanıyor…");
-  const attempt = tracker.start(
-    {
-      items: view.lines.map((x) => ({
-        productId: x.productId,
-        planKey: x.planKey,
-        quantity: x.quantity,
-        expectedUnitPriceKurus: x.plan.priceKurus,
-      })),
-      paymentMethod: state.payment,
-      idempotencyKey: crypto.randomUUID(),
-      ...(state.promotion?.code ? { promotionCode: state.promotion.code } : {}),
-    },
-    { clearCart: true },
-  );
+  let attempt = null,
+    prepared = null;
   try {
+    prepared = await commerce.checkoutQuote(
+      view.lines,
+      state.payment,
+      state.promotion?.code || "",
+    );
+    if (!prepared || buyingUid !== uid()) return;
+    attempt = tracker.start(
+      {
+        items: prepared.quote.items.map((x) => ({
+          productId: x.productId,
+          planKey: x.planKey,
+          quantity: x.quantity,
+          expectedUnitPriceKurus: x.unitPriceKurus,
+        })),
+        paymentMethod: state.payment,
+        idempotencyKey: crypto.randomUUID(),
+        ...(state.promotion?.code
+          ? { promotionCode: state.promotion.code }
+          : {}),
+        commerceQuote: prepared.quote.token,
+        ...(prepared.reservation
+          ? { reservationId: prepared.reservation.id }
+          : {}),
+      },
+      { clearCart: true },
+    );
     const result = await storeApi("/api/store/orders", {
       body: attempt.body,
       timeoutMs: 25000,
     });
     completeOrder(result, attempt);
   } catch (error) {
-    if (
+    const definitive =
       error.mutationNotSent ||
       (![0, 408, 500, 502, 503, 504].includes(Number(error.status || 0)) &&
-        error.code !== "REQUEST_TIMEOUT")
-    ) {
-      tracker.finish(attempt);
-    }
+        error.code !== "REQUEST_TIMEOUT");
+    if (attempt && definitive) tracker.finish(attempt);
+    if (prepared?.reservation && (!attempt || definitive))
+      await commerce
+        .call("/reservations/" + prepared.reservation.id + "/release", {
+          body: {},
+        })
+        .catch(() => {});
     toast(message(error), "error");
     if (tracker.pending()) await recover(button);
     else await loadCatalog();
@@ -750,15 +883,15 @@ async function action(button) {
       toast("Teslimat bilgisi kopyalandı.");
       return;
     }
+    if (a === "install-app") return await installStore();
     if (a === "add") {
-      add(id, plan);
+      await add(id, plan);
       return;
     }
     if (a === "favorite") {
+      if (authRequired()) return;
       favorites.has(id) ? favorites.delete(id) : favorites.add(id);
-      try {
-        storage?.setItem("zentra-favorites-v2", JSON.stringify([...favorites]));
-      } catch {}
+      await commerce.saveFavorites();
       render();
       return;
     }
@@ -776,6 +909,7 @@ async function action(button) {
         if (qty < 1) cart.remove(id, plan);
         else cart.quantity(id, plan, qty);
       }
+      await commerce.saveCart();
       state.promotion = null;
       render();
       return;
@@ -896,7 +1030,7 @@ async function action(button) {
       const items = d.items || d.keys || [];
       modal({
         title: "Teslimat bilgilerin",
-        body: `<p class="fine-print">Bu bilgiler sana özeldir. Güvenli bir yerde sakla.</p>${items.length ? items.map((x) => `<div class="delivery-item"><b>${e(x.productName || x.label || "Ürün")}</b><code class="delivery-secret">${e(x.copyValue || x.value || x.key || (x.type === "account" ? JSON.stringify(x) : x.secret) || "")}</code><button type="button" class="button secondary small" data-action="copy-delivery">${icon("copy")} Bilgiyi kopyala</button></div>`).join("") : `<p>${e(d.message || "Teslimat verileri bu görünümde gösterilemedi. Sipariş referansınla desteğe ulaş.")}</p>`}`,
+        body: `<p class="fine-print">Bu bilgiler sana özeldir. Güvenli bir yerde sakla.</p><button type="button" class="button secondary small" data-commerce="order" data-id="${e(id)}">Sipariş adımları ve teslim alındı onayı</button>${items.map((x) => (x.productId ? `<p><a class="section-link" href="/urun/${e(x.productId)}" data-nav>Ürün ve kurulum açıklaması ${icon("arrow")}</a></p>` : "")).join("")}${items.length ? items.map((x) => `<div class="delivery-item"><b>${e(x.productName || x.label || "Ürün")}</b><code class="delivery-secret">${e(x.copyValue || x.value || x.key || (x.type === "account" ? JSON.stringify(x) : x.secret) || "")}</code><button type="button" class="button secondary small" data-action="copy-delivery">${icon("copy")} Bilgiyi kopyala</button></div>`).join("") : `<p>${e(d.message || "Teslimat verileri bu görünümde gösterilemedi. Sipariş referansınla desteğe ulaş.")}</p>`}`,
       });
       return;
     }
@@ -928,6 +1062,10 @@ async function action(button) {
     if (button.isConnected) busy(button, false);
   }
 }
+document.addEventListener("input", (event) => {
+  if (event.target.id === "commerce-gift-recipient")
+    state.giftRecipient = event.target.value;
+});
 document.addEventListener("click", (event) => {
   const nav = event.target.closest("a[data-nav]");
   if (
@@ -1082,6 +1220,10 @@ document.addEventListener("keydown", (event) => {
   }
   if (event.key === "Escape") $("#search-suggestions").hidden = true;
 });
+document.addEventListener("input", (event) => {
+  if (event.target.id === "commerce-gift-recipient")
+    state.giftRecipient = event.target.value;
+});
 document.addEventListener("click", (event) => {
   if (!event.target.closest(".search")) $("#search-suggestions").hidden = true;
 });
@@ -1108,12 +1250,16 @@ subscribeStoreAuth((snapshot) => {
   if (priorUid !== next) {
     ++state.render;
     clearCustomerSessionView(state, document);
+    state.giftRecipient = "";
     if (
       ["account", "orders", "coupons", "notifications", "cart"].includes(
         route().name,
       )
     )
       main.replaceChildren();
+    void commerce
+      .connect(next)
+      .catch((error) => toast(message(error), "error"));
     priorUid = next;
   }
   header();
@@ -1140,6 +1286,7 @@ subscribeStoreAuth((snapshot) => {
   )
     void render();
 });
+initPwa({ isBusy: () => state.checkoutBusy || !!tracker.pending() });
 void loadCatalog();
 void initStoreAuth().catch((error) => {
   state.auth = { ...state.auth, ready: true };

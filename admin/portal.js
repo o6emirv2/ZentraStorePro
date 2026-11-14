@@ -1,4 +1,4 @@
-import "../public/js/app/device.js?v=93";
+import "../public/js/app/device.js?v=94";
 import "./admin-browser-session.js?v=zentra-ui-v90r1";
 import "./admin-auth.js?v=zentra-ui-v90r1";
 import { adminFetch } from "./admin-core.js?v=zentra-ui-v90r1";
@@ -9,7 +9,7 @@ import {
   field,
   busy,
   toast,
-} from "../public/js/app/ui.js?v=93";
+} from "../public/js/app/ui.js?v=94";
 const root = document.getElementById("admin-root");
 let ticket = "",
   step = 0,
@@ -144,7 +144,7 @@ async function openWorkspace() {
   const generation = portalGeneration,
     session = context;
   const { mountWorkspace, unmountWorkspace } =
-    await import("./workspace.js?v=93");
+    await import("./workspace.js?v=94");
   if (!session || generation !== portalGeneration || context !== session)
     return;
   disposeWorkspace = unmountWorkspace;

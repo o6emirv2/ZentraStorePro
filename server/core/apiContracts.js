@@ -24,7 +24,7 @@ const productPatch = object({ ...productFields, imageUpload: object({ data: text
 const link = object({ id: text(80), platform: text(20), title: text(48), description: text(80), url: text(500), enabled: boolean, showOnHome: boolean });
 const promotion = object({ type: text(20), title: text(100), value: integer(1, 100000000), minimumSubtotalKurus: integer(0, 100000000),
   maxDiscountKurus: integer(0, 100000000), startsAt: date, endsAt: date, usageLimit: integer(0, 1000000), perUserLimit: integer(1, 100),
-  platforms: list(text(20), 2), productIds: list(text(80), 50), active: boolean, visibleInWallet: boolean, createOnly: boolean });
+  platforms: list(text(20), 2), productIds: list(text(80), 50), planKeys: list(text(40), 12), customerUids: list(text(128), 100), active: boolean, visibleInWallet: boolean, createOnly: boolean });
 const inventoryKey = (value) => text(512)(value) || object({ username: text(160), login: text(160), password: text(256) })(value);
 const inventoryFields = { productId: text(80), planKey: text(40), keys: list(inventoryKey, 200), idempotencyKey: text(160) };
 const content = object({ maintenance: boolean,
@@ -52,7 +52,7 @@ const CONTRACTS = [
   ['PATCH', /^\/api\/store\/profile\/name$/, object({ firstName: text(80), lastName: text(80) })],
   ['PATCH', /^\/api\/store\/profile\/birth-date$/, object({ birthDate: text(20) })],
   ['POST', /^\/api\/store\/profile\/email-change\/prepare$/, object({ email: text(254) })],
-  ['POST', /^\/api\/store\/orders$/, object({ items: cart, paymentMethod: text(20), idempotencyKey: text(160), promotionCode: text(32) })],
+  ['POST', /^\/api\/store\/orders$/, object({ items: cart, paymentMethod: text(20), idempotencyKey: text(160), promotionCode: text(32), commerceQuote: text(20000), reservationId: text(128) })],
   ['POST', /^\/api\/store\/order-attempt\/cancel$/, object({ idempotencyKey: text(160) })],
   ['POST', /^\/api\/store\/orders\/[^/]+\/cancel$/, object({ reason: text(200) })],
   ['POST', /^\/api\/store\/promotions\/validate$/, object({ items: cart, code: text(32) })],
@@ -74,6 +74,8 @@ const CONTRACTS = [
   ['PUT', /^\/api\/admin\/store\/staff\/[^/]+$/, object({ email: text(254), role: text(40), active: boolean })]
 ];
 function validateApiBody(method, path, body) {
+  const commerce = require('../commerce/contracts').validate(method, path, body);
+  if (commerce !== null) return commerce;
   const contract = CONTRACTS.find(([verb, pattern]) => verb === method && pattern.test(path));
   return !contract || contract[2](body ?? {});
 }

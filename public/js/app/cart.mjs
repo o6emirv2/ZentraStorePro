@@ -24,7 +24,9 @@ export function normalizeItems(input) {
   return [...output.values()];
 }
 export function createCart(storage) {
-  let items = [];
+  let items = [],
+    ownerId = null;
+  const storageKey = () => (ownerId ? KEY + ":" + ownerId : KEY);
   try {
     const saved = storage?.getItem(KEY);
     if (saved && saved.length <= 15000)
@@ -32,11 +34,29 @@ export function createCart(storage) {
   } catch {}
   function save() {
     try {
-      storage?.setItem(KEY, JSON.stringify(items));
+      storage?.setItem(storageKey(), JSON.stringify(items));
     } catch {}
   }
   return {
     items: () => items.map((x) => ({ ...x })),
+    owner(uid) {
+      ownerId = String(uid || "");
+      items = [];
+      if (!ownerId) {
+        try {
+          storage?.removeItem(KEY);
+        } catch {}
+        return;
+      }
+      try {
+        const raw = storage?.getItem(storageKey());
+        if (raw && raw.length < 15000) items = normalizeItems(JSON.parse(raw));
+      } catch {}
+    },
+    replace(value) {
+      items = normalizeItems(value);
+      save();
+    },
     add(productId, planKey) {
       const found = items.find(
         (x) => x.productId === productId && x.planKey === planKey,

@@ -1,6 +1,6 @@
 {
   "name": "zentra-store-production",
-  "version": "93.0.0",
+  "version": "94.0.0",
   "private": true,
   "type": "commonjs",
   "description": "ZENTRA STORE digital storefront with protected sessions, transaction-safe wallet and encrypted digital-delivery vault",
@@ -27,7 +27,8 @@
     "check:syntax": "node scripts/verify-source.cjs",
     "test": "node --test scripts/*-regression.cjs",
     "test:smoke": "node scripts/production-smoke.cjs",
-    "test:performance": "node scripts/performance-smoke.cjs"
+    "test:performance": "node scripts/performance-smoke.cjs",
+    "release:verify": "node scripts/verify-live-release.cjs"
   },
   "dependencies": {
     "compression": "^1.8.2",

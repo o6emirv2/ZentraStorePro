@@ -19,19 +19,19 @@ const ROLE_PERMISSIONS = Object.freeze({
   admin: Object.freeze(['*']),
   finance: Object.freeze([
     'store.overview.read', 'store.orders.read', 'store.users.read', 'store.wallet.read', 'store.wallet.write',
-    'store.audit.read', 'store.security.read'
+    'store.audit.read', 'store.security.read', 'store.analytics.read'
   ]),
   inventory: Object.freeze([
     'store.overview.read', 'store.catalog.read', 'store.catalog.write', 'store.inventory.read', 'store.inventory.write',
-    'store.audit.read', 'store.security.read'
+    'store.audit.read', 'store.security.read', 'store.analytics.read'
   ]),
   orders: Object.freeze([
-    'store.overview.read', 'store.catalog.read', 'store.orders.read', 'store.orders.write', 'store.inventory.read', 'store.users.read',
-    'store.audit.read', 'store.security.read'
+    'store.overview.read', 'store.catalog.read', 'store.orders.read', 'store.orders.write', 'store.inventory.read', 'store.users.read', 'store.support.read', 'store.support.write',
+    'store.audit.read', 'store.security.read', 'store.analytics.read'
   ]),
   support: Object.freeze([
-    'store.overview.read', 'store.orders.read', 'store.users.read', 'store.wallet.read', 'store.content.read',
-    'store.audit.read', 'store.security.read'
+    'store.overview.read', 'store.orders.read', 'store.users.read', 'store.wallet.read', 'store.content.read', 'store.support.read', 'store.support.write',
+    'store.audit.read', 'store.security.read', 'store.analytics.read'
   ]),
   viewer: Object.freeze([
     'store.overview.read', 'store.catalog.read', 'store.content.read'

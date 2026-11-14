@@ -104,6 +104,7 @@ function loadingMarkup(source, title) {
 async function servePage(req, res, next) {
   try {
     res.setHeader("Cache-Control", "no-cache, max-age=0, must-revalidate");
+    let image;
     let source = html,
       canonical = base() + (req.path === "/index.html" ? "/" : req.path),
       title = "Android ve iOS ürünleri",
@@ -136,7 +137,16 @@ async function servePage(req, res, next) {
     }
     if (req.params.productId) {
       const catalog = await getEffectiveCatalog({ includeInactive: false });
-      const p = catalog.products.find((x) => x.id === req.params.productId);
+      let p = catalog.products.find((x) => x.id === req.params.productId);
+      if (!p) {
+        try {
+          p = await require("../commerce/catalog").resolveProduct(
+            req.params.productId,
+          );
+        } catch (error) {
+          if (error.statusCode !== 404) throw error;
+        }
+      }
       if (!p) {
         res.setHeader("X-Robots-Tag", "noindex");
         return res
@@ -150,8 +160,21 @@ async function servePage(req, res, next) {
             }),
           );
       }
-      title = p.name;
-      description = p.description;
+      let content = {};
+      const database = require("../config/firebaseAdmin").initFirebaseAdmin()
+        .db;
+      if (database)
+        content =
+          (
+            await database.collection("storeProductDetails").doc(p.id).get()
+          ).data()?.published || {};
+      title = content.seo?.title || p.name;
+      description =
+        content.seo?.description || content.description?.tr || p.description;
+      if (content.seo?.slug) canonical = base() + "/urun/" + content.seo.slug;
+      if (content.seo?.image)
+        image = new URL(content.seo.image, canonical).href;
+      p = { ...p, description: content.description?.tr || p.description };
       source = productMarkup(source, p, canonical);
     } else if (req.params.category) {
       title =
@@ -177,7 +200,7 @@ async function servePage(req, res, next) {
       const catalog = await getEffectiveCatalog({ includeInactive: false });
       source = listingMarkup(source, title, catalog.products);
     }
-    source = meta(source, { title, description, canonical });
+    source = meta(source, { title, description, canonical, image });
     res.type("html").send(source);
   } catch (error) {
     next(error);
@@ -193,6 +216,21 @@ function robots(_req, res) {
 async function sitemap(_req, res, next) {
   try {
     const catalog = await getEffectiveCatalog({ includeInactive: false });
+    const database = require("../config/firebaseAdmin").initFirebaseAdmin().db;
+    const published =
+      database && catalog.products.length
+        ? await database.getAll(
+            ...catalog.products.map((p) =>
+              database.collection("storeProductDetails").doc(p.id),
+            ),
+          )
+        : [];
+    const slugs = new Map(
+      published.map((doc) => [
+        doc.id,
+        doc.data()?.published?.seo?.slug || doc.id,
+      ]),
+    );
     const urls = [
       "/",
       "/magaza",
@@ -200,7 +238,7 @@ async function sitemap(_req, res, next) {
       ...["android", "ios", "pubg", "oxide", "gbox"].map(
         (x) => "/kategori/" + x,
       ),
-      ...catalog.products.map((p) => "/urun/" + p.id),
+      ...catalog.products.map((p) => "/urun/" + (slugs.get(p.id) || p.id)),
     ];
     res.setHeader("Cache-Control", "public, max-age=300");
     res

@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "checkedAt": 1794605152131,
-  "sourceDigest": "99f14599407f61024e5c7ef76eea40d2510f9ec61457745df86f2f5982368ce4",
+  "checkedAt": 1794618140032,
+  "sourceDigest": "982a8e91fb807d99aa6e968550a67ff6ec2c55997974f4bf3c8b0f506e840c8e",
   "source": {
     "exitCode": 0
   },
@@ -13,9 +13,9 @@
   },
   "regression": {
     "exitCode": 0,
-    "passed": 346,
+    "passed": 383,
     "failed": 0,
-    "total": 346,
+    "total": 383,
     "skipped": 0,
     "suites": {
       "accessibility-contrast-regression.cjs": {
@@ -191,6 +191,39 @@
         "skipped": 0,
         "todo": 0,
         "topLevel": 4,
+        "suites": 0,
+        "verified": true
+      },
+      "commerce-fulfillment-regression.cjs": {
+        "tests": 8,
+        "failed": 0,
+        "passed": 8,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "topLevel": 8,
+        "suites": 0,
+        "verified": true
+      },
+      "commerce-platform-regression.cjs": {
+        "tests": 14,
+        "failed": 0,
+        "passed": 14,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "topLevel": 14,
+        "suites": 0,
+        "verified": true
+      },
+      "commerce-regression.cjs": {
+        "tests": 15,
+        "failed": 0,
+        "passed": 15,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "topLevel": 15,
         "suites": 0,
         "verified": true
       },
@@ -506,7 +539,7 @@
   },
   "dependencies": {
     "verified": true,
-    "checkedAt": 1794605169888,
+    "checkedAt": 1794618161708,
     "info": 0,
     "low": 0,
     "moderate": 0,

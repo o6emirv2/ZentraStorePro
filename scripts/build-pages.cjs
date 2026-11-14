@@ -39,7 +39,7 @@ function writePage(route, source, title, privatePage = false) {
 }
 fs.rmSync(output, { recursive: true, force: true });
 fs.mkdirSync(output);
-for (const name of ["index.html", "CNAME", "admin", "public"])
+for (const name of ["index.html", "CNAME", "admin", "public", "sw.js", "offline.html"])
   copy(path.join(root, name), path.join(output, name));
 for (const name of ["favicon.ico", "apple-touch-icon.png"])
   copy(path.join(root, "public/assets/images", name), path.join(output, name));

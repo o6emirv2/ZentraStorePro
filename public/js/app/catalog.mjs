@@ -25,7 +25,7 @@ export function filterProducts(
         const n = norm(p.name);
         if (Math.abs(n.length - nq.length) > 1) return false;
         let misses = 0;
-        for (let i = 0, j = 0; i < n.length || j < nq.length;) {
+        for (let i = 0, j = 0; i < n.length || j < nq.length; ) {
           if (n[i] === nq[j]) {
             i++;
             j++;

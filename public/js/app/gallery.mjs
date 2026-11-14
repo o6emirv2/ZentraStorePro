@@ -45,6 +45,12 @@ export function productGallery(product = {}) {
       alt: name + " ürün görseli",
     },
   ];
+  if (Array.isArray(product.gallery) && product.gallery.length) {
+    for (const image of product.gallery.slice(0, 12))
+      if (safeSource(image.url))
+        items.push({ src: image.url, alt: image.alt || name });
+    return Object.freeze(items.map(Object.freeze));
+  }
   if (group)
     for (let i = 1; i <= group.count; i++)
       items.push({

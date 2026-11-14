@@ -11,10 +11,10 @@
   gap: 25px;
 }
 .admin-loading h1 {
-  font-size: 24px;
+  font-size: calc(24px * var(--reading-scale, 1));
 }
 .admin-loading p {
-  font-size: 12px;
+  font-size: calc(12px * var(--reading-scale, 1));
   color: var(--muted);
 }
 .gate-layout {
@@ -54,12 +54,12 @@
   align-self: flex-start;
 }
 .gate-brand h1 {
-  font-size: 58px;
+  font-size: calc(58px * var(--reading-scale, 1));
   line-height: 1.12;
   letter-spacing: -0.06em;
 }
 .gate-brand p {
-  font-size: 13px;
+  font-size: calc(13px * var(--reading-scale, 1));
   color: #c3cfeb;
   line-height: 1.9;
   margin-top: 25px;
@@ -70,7 +70,7 @@
 .gate-security {
   display: flex;
   gap: 10px;
-  font-size: 10px;
+  font-size: calc(10px * var(--reading-scale, 1));
   color: #c6d2ef;
   align-items: center;
 }
@@ -90,10 +90,10 @@
   width: 100%;
 }
 .gate-content h2 {
-  font-size: 34px;
+  font-size: calc(34px * var(--reading-scale, 1));
 }
 .gate-content .fine-print {
-  font-size: 12px;
+  font-size: calc(12px * var(--reading-scale, 1));
   margin-top: 16px;
   line-height: 1.8;
 }
@@ -109,7 +109,7 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: 10px;
+  font-size: calc(10px * var(--reading-scale, 1));
   color: var(--muted);
 }
 .gate-steps li > span {
@@ -119,7 +119,7 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font-size: 10px;
+  font-size: calc(10px * var(--reading-scale, 1));
 }
 .gate-steps li.current {
   color: #b8442b;
@@ -138,7 +138,7 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 11px;
+  font-size: calc(11px * var(--reading-scale, 1));
   color: var(--muted);
   margin-top: 40px;
 }
@@ -165,7 +165,7 @@
   margin: 0 10px 35px;
 }
 .workspace-label {
-  font-size: 8px;
+  font-size: calc(8px * var(--reading-scale, 1));
   letter-spacing: 0.15em;
   color: #9198a6;
   font-weight: 650;
@@ -183,7 +183,7 @@
   gap: 12px;
   padding: 12px 14px;
   border-radius: 9px;
-  font-size: 11px;
+  font-size: calc(11px * var(--reading-scale, 1));
   color: #697287;
   min-height: 44px;
 }
@@ -203,7 +203,7 @@
   margin-top: auto;
   border-top: 1px solid var(--line);
   padding-top: 22px;
-  font-size: 10px;
+  font-size: calc(10px * var(--reading-scale, 1));
   color: var(--muted);
 }
 .admin-sidebar-footer a {
@@ -238,11 +238,11 @@
   align-items: center;
 }
 .admin-topbar p {
-  font-size: 11px;
+  font-size: calc(11px * var(--reading-scale, 1));
   font-weight: 600;
 }
 .admin-topbar small {
-  font-size: 9px;
+  font-size: calc(9px * var(--reading-scale, 1));
   color: var(--muted);
   display: block;
 }
@@ -251,7 +251,7 @@
   color: #47734c;
 }
 .admin-topbar .button {
-  font-size: 10px;
+  font-size: calc(10px * var(--reading-scale, 1));
   min-height: 37px;
 }
 .mobile-menu-toggle {
@@ -271,10 +271,10 @@
   margin-bottom: 27px;
 }
 .admin-view-header h1 {
-  font-size: 29px;
+  font-size: calc(29px * var(--reading-scale, 1));
 }
 .admin-view-header p {
-  font-size: 11px;
+  font-size: calc(11px * var(--reading-scale, 1));
   color: var(--muted);
   margin-top: 9px;
   line-height: 1.8;
@@ -302,7 +302,7 @@
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  font-size: 10px;
+  font-size: calc(10px * var(--reading-scale, 1));
   color: var(--muted);
   align-items: center;
 }
@@ -311,14 +311,14 @@
   color: var(--muted);
 }
 .stat-number {
-  font-size: 30px;
+  font-size: calc(30px * var(--reading-scale, 1));
   letter-spacing: -0.055em;
   font-weight: 650;
   margin: 18px 0 8px;
   overflow-wrap: anywhere;
 }
 .stat-card small {
-  font-size: 9px;
+  font-size: calc(9px * var(--reading-scale, 1));
   color: var(--muted);
 }
 .admin-grid-two {
@@ -338,7 +338,7 @@
   grid-template-columns: 100px 1fr 40px;
   gap: 14px;
   align-items: center;
-  font-size: 10px;
+  font-size: calc(10px * var(--reading-scale, 1));
 }
 .chart-track {
   height: 9px;
@@ -361,7 +361,7 @@
   background: #dec7aa;
 }
 .panel-subtitle {
-  font-size: 10px;
+  font-size: calc(10px * var(--reading-scale, 1));
   color: var(--muted);
   margin-top: 7px;
 }
@@ -370,7 +370,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  font-size: 11px;
+  font-size: calc(11px * var(--reading-scale, 1));
   margin-top: 19px;
 }
 .system-dot {
@@ -401,7 +401,7 @@
 }
 .admin-toolbar .field input {
   min-height: 40px;
-  font-size: 11px;
+  font-size: calc(11px * var(--reading-scale, 1));
 }
 .admin-table-wrap {
   border: 1px solid var(--line);
@@ -413,12 +413,12 @@
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 11px;
+  font-size: calc(11px * var(--reading-scale, 1));
   text-align: left;
   min-width: 650px;
 }
 .admin-table th {
-  font-size: 8px;
+  font-size: calc(8px * var(--reading-scale, 1));
   color: var(--muted);
   font-weight: 650;
   letter-spacing: 0.08em;
@@ -439,7 +439,7 @@
 .admin-table small {
   display: block;
   color: var(--muted);
-  font-size: 9px;
+  font-size: calc(9px * var(--reading-scale, 1));
   margin-top: 4px;
 }
 .table-product {
@@ -454,7 +454,7 @@
 }
 .admin-table .button {
   min-height: 33px;
-  font-size: 9px;
+  font-size: calc(9px * var(--reading-scale, 1));
   padding: 7px 11px;
 }
 .audit-grid {
@@ -475,12 +475,12 @@
   margin-bottom: 18px;
 }
 .audit-card h2 {
-  font-size: 14px;
+  font-size: calc(14px * var(--reading-scale, 1));
   overflow-wrap: anywhere;
   letter-spacing: -0.02em;
 }
 .audit-card time {
-  font-size: 9px;
+  font-size: calc(9px * var(--reading-scale, 1));
   color: var(--muted);
   white-space: nowrap;
 }
@@ -490,14 +490,14 @@
   gap: 17px;
 }
 .audit-fields dt {
-  font-size: 8px;
+  font-size: calc(8px * var(--reading-scale, 1));
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 .audit-fields dd {
   margin: 5px 0 0;
-  font-size: 10px;
+  font-size: calc(10px * var(--reading-scale, 1));
   word-break: break-word;
   white-space: pre-wrap;
 }
@@ -523,14 +523,14 @@
   border-radius: 10px;
 }
 .admin-product-card h2 {
-  font-size: 16px;
+  font-size: calc(16px * var(--reading-scale, 1));
 }
 .admin-product-card small {
-  font-size: 9px;
+  font-size: calc(9px * var(--reading-scale, 1));
   color: var(--muted);
 }
 .admin-product-card p {
-  font-size: 10px;
+  font-size: calc(10px * var(--reading-scale, 1));
   color: var(--muted);
   margin: 15px 0;
   line-height: 1.8;
@@ -545,12 +545,12 @@
   padding-top: 15px;
 }
 .admin-product-card .button {
-  font-size: 9px;
+  font-size: calc(9px * var(--reading-scale, 1));
   min-height: 34px;
   padding: 8px 11px;
 }
 .admin-product-card .price {
-  font-size: 18px;
+  font-size: calc(18px * var(--reading-scale, 1));
 }
 .status-choice {
   display: flex;
@@ -559,7 +559,7 @@
   border: 1px solid var(--line);
   border-radius: 10px;
   margin: 9px 0;
-  font-size: 12px;
+  font-size: calc(12px * var(--reading-scale, 1));
   align-items: center;
 }
 .status-choice:has(input:checked) {
@@ -579,7 +579,7 @@
 .bulk-grid .button {
   justify-content: flex-start;
   text-align: left;
-  font-size: 10px;
+  font-size: calc(10px * var(--reading-scale, 1));
   line-height: 1.6;
 }
 .job-panel {
@@ -590,10 +590,10 @@
   margin-bottom: 23px;
 }
 .job-panel h2 {
-  font-size: 18px;
+  font-size: calc(18px * var(--reading-scale, 1));
 }
 .job-panel p {
-  font-size: 11px;
+  font-size: calc(11px * var(--reading-scale, 1));
   line-height: 1.8;
   margin-top: 12px;
   color: #796442;
@@ -609,7 +609,7 @@
   gap: 18px;
   flex-wrap: wrap;
   margin-top: 15px;
-  font-size: 11px;
+  font-size: calc(11px * var(--reading-scale, 1));
 }
 .admin-form-panel {
   max-width: 850px;
@@ -619,7 +619,7 @@
 }
 .admin-form-panel textarea.code-editor {
   font-family: monospace;
-  font-size: 12px;
+  font-size: calc(12px * var(--reading-scale, 1));
   min-height: 250px;
 }
 .admin-form-panel .button {
@@ -629,7 +629,7 @@
   padding: 45px;
   text-align: center;
   color: var(--muted);
-  font-size: 13px;
+  font-size: calc(13px * var(--reading-scale, 1));
   line-height: 1.8;
 }
 .security-grid {
@@ -650,16 +650,16 @@
   align-items: center;
 }
 .security-card h2 {
-  font-size: 13px;
+  font-size: calc(13px * var(--reading-scale, 1));
 }
 .security-card p {
-  font-size: 10px;
+  font-size: calc(10px * var(--reading-scale, 1));
   color: var(--muted);
   line-height: 1.9;
   margin-top: 12px;
 }
 .security-status {
-  font-size: 8px;
+  font-size: calc(8px * var(--reading-scale, 1));
   font-weight: 700;
   color: #587563;
 }
@@ -677,7 +677,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 11px;
+  font-size: calc(11px * var(--reading-scale, 1));
   padding: 14px 0;
   border-bottom: 1px solid var(--line);
 }
@@ -685,10 +685,10 @@
   flex: 1;
 }
 .stock-row strong {
-  font-size: 12px;
+  font-size: calc(12px * var(--reading-scale, 1));
 }
 .stock-row small {
-  font-size: 9px;
+  font-size: calc(9px * var(--reading-scale, 1));
   color: var(--muted);
   display: block;
   margin-top: 3px;
@@ -697,14 +697,14 @@
   padding: 40px;
   text-align: center;
   color: var(--muted);
-  font-size: 12px;
+  font-size: calc(12px * var(--reading-scale, 1));
 }
 .admin-pagination {
   margin-top: 20px;
   display: flex;
   gap: 10px;
   align-items: center;
-  font-size: 10px;
+  font-size: calc(10px * var(--reading-scale, 1));
   color: var(--muted);
 }
 .money-positive {
@@ -719,11 +719,11 @@
   background: var(--paper);
   white-space: pre-wrap;
   word-break: break-all;
-  font-size: 10px;
+  font-size: calc(10px * var(--reading-scale, 1));
   line-height: 1.8;
 }
 .admin-readonly-message {
-  font-size: 11px;
+  font-size: calc(11px * var(--reading-scale, 1));
   background: #eaf0f6;
   border-radius: 9px;
   padding: 14px;
@@ -751,7 +751,7 @@
     padding: 18px;
   }
   .stat-number {
-    font-size: 27px;
+    font-size: calc(27px * var(--reading-scale, 1));
   }
   .admin-product-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -763,7 +763,7 @@
     padding: 45px;
   }
   .gate-brand h1 {
-    font-size: 48px;
+    font-size: calc(48px * var(--reading-scale, 1));
   }
 }
 @media (max-width: 800px) {
@@ -776,13 +776,13 @@
     gap: 35px;
   }
   .gate-brand h1 {
-    font-size: 34px;
+    font-size: calc(34px * var(--reading-scale, 1));
   }
   .gate-brand h1 br {
     display: none;
   }
   .gate-brand p {
-    font-size: 11px;
+    font-size: calc(11px * var(--reading-scale, 1));
     margin-top: 15px;
   }
   .gate-brand .gate-security {
@@ -792,7 +792,7 @@
     padding: 35px 25px;
   }
   .gate-content h2 {
-    font-size: 29px;
+    font-size: calc(29px * var(--reading-scale, 1));
   }
   .admin-shell {
     display: block;
@@ -825,7 +825,7 @@
     border: 1px solid var(--line);
     background: #fff;
     border-radius: 9px;
-    font-size: 20px;
+    font-size: calc(20px * var(--reading-scale, 1));
   }
   .admin-topbar {
     height: 70px;
@@ -833,19 +833,19 @@
     padding-top: env(safe-area-inset-top);
   }
   .admin-topbar p {
-    font-size: 10px;
+    font-size: calc(10px * var(--reading-scale, 1));
   }
   .admin-topbar small {
-    font-size: 8px;
+    font-size: calc(8px * var(--reading-scale, 1));
   }
   .admin-main {
     padding: 25px 20px 45px;
   }
   .admin-view-header h1 {
-    font-size: 25px;
+    font-size: calc(25px * var(--reading-scale, 1));
   }
   .admin-view-header p {
-    font-size: 10px;
+    font-size: calc(10px * var(--reading-scale, 1));
   }
   .stat-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -854,7 +854,7 @@
     padding: 18px;
   }
   .stat-number {
-    font-size: 28px;
+    font-size: calc(28px * var(--reading-scale, 1));
   }
   .audit-fields {
     grid-template-columns: 1fr 1fr;
@@ -866,14 +866,14 @@
     padding: 16px;
   }
   .admin-product-card h2 {
-    font-size: 14px;
+    font-size: calc(14px * var(--reading-scale, 1));
   }
   .admin-product-card img {
     width: 45px;
     height: 45px;
   }
   .admin-view-header > .button {
-    font-size: 10px;
+    font-size: calc(10px * var(--reading-scale, 1));
     min-height: 38px;
     padding: 10px 14px;
   }
@@ -890,7 +890,7 @@
     gap: 8px;
   }
   .admin-topbar .button {
-    font-size: 9px;
+    font-size: calc(9px * var(--reading-scale, 1));
     padding: 8px 10px;
     min-height: 35px;
   }
@@ -900,7 +900,7 @@
   .admin-topbar .avatar {
     width: 30px;
     height: 30px;
-    font-size: 10px;
+    font-size: calc(10px * var(--reading-scale, 1));
   }
   .admin-view-header {
     gap: 10px;
@@ -908,10 +908,10 @@
     flex-wrap: wrap;
   }
   .admin-view-header h1 {
-    font-size: 25px;
+    font-size: calc(25px * var(--reading-scale, 1));
   }
   .admin-view-header p {
-    font-size: 9px;
+    font-size: calc(9px * var(--reading-scale, 1));
     max-width: 280px;
   }
   .stat-grid {
@@ -921,17 +921,17 @@
     padding: 16px;
   }
   .stat-card > header {
-    font-size: 9px;
+    font-size: calc(9px * var(--reading-scale, 1));
   }
   .stat-card > header .icon {
     width: 16px;
   }
   .stat-number {
-    font-size: 25px;
+    font-size: calc(25px * var(--reading-scale, 1));
     margin-top: 15px;
   }
   .stat-card small {
-    font-size: 8px;
+    font-size: calc(8px * var(--reading-scale, 1));
   }
   .admin-product-grid {
     grid-template-columns: 1fr;
@@ -944,19 +944,19 @@
     gap: 8px;
   }
   .audit-card h2 {
-    font-size: 12px;
+    font-size: calc(12px * var(--reading-scale, 1));
   }
   .audit-card time {
-    font-size: 8px;
+    font-size: calc(8px * var(--reading-scale, 1));
   }
   .audit-fields {
     gap: 13px;
   }
   .audit-fields dd {
-    font-size: 9px;
+    font-size: calc(9px * var(--reading-scale, 1));
   }
   .audit-fields dt {
-    font-size: 7px;
+    font-size: calc(7px * var(--reading-scale, 1));
   }
   .bulk-grid {
     grid-template-columns: 1fr;
@@ -972,15 +972,15 @@
     height: 42px;
   }
   .admin-toolbar .field input {
-    font-size: 15px;
+    font-size: calc(15px * var(--reading-scale, 1));
   }
   .admin-toolbar > .button {
-    font-size: 10px;
+    font-size: calc(10px * var(--reading-scale, 1));
   }
   .chart-row {
     grid-template-columns: 90px 1fr 28px;
     gap: 10px;
-    font-size: 9px;
+    font-size: calc(9px * var(--reading-scale, 1));
   }
   .gate-content {
     padding: 30px 22px;
@@ -990,20 +990,20 @@
     min-height: 235px;
   }
   .gate-brand h1 {
-    font-size: 32px;
+    font-size: calc(32px * var(--reading-scale, 1));
   }
   .gate-steps {
     gap: 12px;
   }
   .gate-steps li {
-    font-size: 9px;
+    font-size: calc(9px * var(--reading-scale, 1));
   }
   .gate-steps li > span {
     width: 23px;
     height: 23px;
   }
   .gate-content .fine-print {
-    font-size: 11px;
+    font-size: calc(11px * var(--reading-scale, 1));
   }
 }
 
@@ -1013,5 +1013,5 @@
   border-radius: 13px;
 }
 .admin-sidebar .brand-text {
-  font-size: 15px;
+  font-size: calc(15px * var(--reading-scale, 1));
 }
