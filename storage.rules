@@ -1,0 +1,17 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Product media is public; mutations go through the authorized server.
+    match /store-product-images/{fileName} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // Support attachments are always served by an ownership-checked API.
+    match /support/{uid}/{ticketId}/{fileId} {
+      allow read, write: if false;
+    }
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

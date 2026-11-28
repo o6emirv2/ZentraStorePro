@@ -1,0 +1,79 @@
+/* The viewport variables track the space above the on-screen keyboard. */
+html:has(dialog.store-sheet[open]) { overflow: hidden; }
+body[data-zentra-page="store"] dialog.store-sheet {
+  position: fixed;
+  inset: auto 0 max(0px, calc(100dvh - var(--visual-viewport-height, 100dvh) - var(--visual-viewport-top, 0px)));
+  width: min(600px, 100%);
+  max-width: 100%;
+  max-height: calc(min(100dvh, var(--visual-viewport-height, 100dvh)) - max(6px, env(safe-area-inset-top)));
+  margin: 0 auto;
+  padding: 0;
+  overflow: hidden;
+  background: #101a2d;
+  color: #edf3ff;
+  border: 1px solid #344766;
+  border-bottom: 0;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -12px 60px #02071466;
+}
+dialog.store-sheet[open] { display: flex; flex-direction: column; animation: zentra-sheet-enter 215ms cubic-bezier(.2,.75,.25,1) both; }
+dialog.store-sheet[open].sheet-closing { animation: zentra-sheet-exit 145ms ease-in both; }
+dialog.store-sheet::backdrop { background: #030815a8; }
+dialog.store-sheet::before { content: ''; width: 38px; height: 4px; flex: none; margin: 8px auto 0; border-radius: 8px; background: #6b7e99; }
+.store-sheet .account-hub__header, .store-sheet .dialog-form > header { display: flex; flex: none; flex-wrap: nowrap; align-items: center; gap: 12px; padding: 12px 20px 15px; background: transparent; }
+.store-sheet .account-hub__header h2, .store-sheet .dialog-form > header > div { flex: 1; min-width: 0; }
+.store-sheet header h2 { margin: 0; font-size: clamp(19px, 4vw, 23px); line-height: 1.25; overflow-wrap: anywhere; }
+.store-sheet .sheet-symbol, .store-sheet .dialog-symbol { display: grid; flex: none; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: #203658; color: #aecbff; }
+.store-sheet .dialog-form { display: flex; flex-direction: column; min-height: 0; }
+.store-sheet .account-hub__content, .store-sheet .dialog-body { flex: 1 1 auto; min-height: 0; max-height: none; padding: 16px 20px; overflow-y: auto; overscroll-behavior: contain; scroll-padding-block: 12px; }
+.store-sheet .account-hub__content { padding-bottom: max(18px, env(safe-area-inset-bottom)); }
+.store-sheet .hub-card:last-child { margin-bottom: 0; }
+.store-sheet .dialog-form > footer { flex: none; padding: 12px 20px max(12px, env(safe-area-inset-bottom)); }
+.store-sheet .account-hub__status:not(:empty) { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+.store-sheet .dialog-form > header p { margin: 4px 0 0; line-height: 1.4; }
+.store-sheet .hub-toolbar > button { min-height: 44px; }
+.store-sheet :is(textarea,input,select) { scroll-margin-block: 12px; }
+#notificationBell { display: inline-grid; position: relative; flex: none; place-items: center; align-self: center; width: 44px; height: 44px; padding: 0; background: #17233a; color: #fff; border: 1px solid #344660; border-radius: 12px; cursor: pointer; }
+#notificationBell[hidden], #notificationBell [hidden] { display: none !important; }
+#notificationBell i { font-size: 18px; transform-origin: center 16%; }
+#notificationBell.has-unread i { color: #ffd270; }
+.header-bell__count { position: absolute; top: -4px; right: -3px; min-width: 18px; height: 18px; padding: 0 4px; border: 1px solid #0e182b; border-radius: 12px; background: #ffda83; color: #36260a; font: 700 11px/16px system-ui, sans-serif; text-align: center; pointer-events: none; }
+.detail-check { margin: 0; color: #c4d8ff; font-size: 13px; line-height: 1.45; }
+.detail-check:not(:empty) { grid-column: 1/-1; padding: 6px 0; }
+.detail-check:empty { display: none; }
+.coupon-actions { display: flex; grid-column: 1/-1; flex-wrap: wrap; gap: 8px; align-items: center; }
+.coupon-actions button { min-height: 44px; }
+@keyframes zentra-sheet-enter { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes zentra-sheet-exit { from { transform: translateY(0); } to { transform: translateY(100%); } }
+@media (max-width: 899px) {
+  body[data-authenticated=true] .store-header .topbar__inner { grid-template-columns: minmax(0,1fr) 44px auto 44px; }
+  .store-header #notificationBell { grid-column: 2; grid-row: 1; }
+  .store-header #topBalanceButton { grid-column: 3; }
+  .store-header #accountButton { grid-column: 4; }
+  #authSheet .side-sheet { transform: translateY(100%); }
+  #authSheet.is-open .side-sheet { transform: translateY(0); }
+}
+@media (max-width: 380px) {
+  body[data-authenticated=true] .store-header .topbar__inner { gap: 4px; }
+  .store-header #topBalanceButton { max-width: 100px; }
+  .store-sheet .account-hub__header, .store-sheet .dialog-form > header, .store-sheet .dialog-body, .store-sheet .account-hub__content { padding-inline: 12px; }
+}
+@media (max-height: 440px) {
+  .store-sheet .dialog-form > header, .store-sheet .account-hub__header { padding-block: 4px; }
+  .store-sheet .dialog-form > footer { padding-block: 4px max(4px, env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog.store-sheet[open], dialog.store-sheet[open].sheet-closing, #authSheet .side-sheet { animation: none; transition: none; }
+}
+.hub-delivery { display: grid; justify-items: start; gap: 10px; margin-block: 14px; }
+.hub-delivery code { max-width: 100%; overflow-wrap: anywhere; }
+.header-bell__count.is-wide { font-size: 10px; font-variant-numeric: tabular-nums; }
+
+@media(min-width:900px){
+  body[data-zentra-page="store"] dialog.store-sheet {inset:0;margin:auto;width:min(560px,calc(100% - 48px));max-height:min(84dvh,var(--visual-viewport-height,84dvh));border:1px solid #344766;border-radius:18px}
+  dialog.store-sheet::before {display:none}
+  dialog.store-sheet[open] {animation:zentra-dialog-enter .16s ease-out both}
+  dialog.store-sheet[open].sheet-closing {animation:zentra-dialog-enter .14s ease-in reverse both}
+}
+@keyframes zentra-dialog-enter {from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){body[data-zentra-page="store"] dialog.store-sheet[open]{animation:none}}

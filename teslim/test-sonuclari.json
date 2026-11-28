@@ -1,0 +1,1038 @@
+{
+  "sürüm": "117.0.0",
+  "tarih": "2026-11-28",
+  "kaynak_özeti_sha256": "eafbf8b9ddebe6177ae497dda6d69ba264373a64c41c6eab3c840cecbaef8b3d",
+  "regresyon": {
+    "passed": 718,
+    "failed": 0,
+    "skipped": 0,
+    "suites": 89
+  },
+  "tarayıcı": {
+    "motor": "Chromium 153.0.8010.0",
+    "fiziksel_cihaz": false,
+    "toplam": 191,
+    "gruplar": {
+      "admin": [
+        {
+          "ad": "desktop-six-step-gate",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "account-control-tools-security",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "verified-member-broadcast",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "desktop-product-creation",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "desktop-category",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "owner-role-grant",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "mobile-six-step-gate",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "admin-mobile-layout-320x844",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "admin-mobile-layout-360x844",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "admin-mobile-layout-375x844",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "admin-mobile-layout-390x844",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "admin-mobile-layout-393x844",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "admin-mobile-layout-412x844",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "admin-mobile-layout-414x844",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "admin-mobile-layout-430x844",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "admin-mobile-layout-844x390",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "mobile-product-creation",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "mobile-category",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "delegated-full-authority",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "role-revocation",
+          "sonuç": "PASS"
+        }
+      ],
+      "gbox": [
+        {
+          "ad": "catalog-devices-320",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "detail-iPhone-320",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "detail-iPad-320",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "cart-quantity-and-channels-320",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "persisted-order-history-320",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "telegram-purchase-320",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "catalog-devices-390",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "detail-iPhone-390",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "detail-iPad-390",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "cart-quantity-and-channels-390",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "persisted-order-history-390",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "telegram-purchase-390",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "catalog-devices-768",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "detail-iPhone-768",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "detail-iPad-768",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "cart-quantity-and-channels-768",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "persisted-order-history-768",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "telegram-purchase-768",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "catalog-devices-1440",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "detail-iPhone-1440",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "detail-iPad-1440",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "cart-quantity-and-channels-1440",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "persisted-order-history-1440",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "telegram-purchase-1440",
+          "sonuç": "PASS"
+        }
+      ],
+      "integration": [
+        {
+          "ad": "delayed-status-does-not-block-home",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "initial-offline-does-not-flash-maintenance",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "five-saved-card-levels",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "viewport-320",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "viewport-375",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "viewport-390",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "viewport-430",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "viewport-768",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "viewport-1024",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "viewport-1280",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "viewport-1440",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "viewport-1920",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "removed-header-control-and-advanced-filters",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "product-search-remains-available",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "independent-gbox-categories",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "header-badge-counts-beyond-inbox-page",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "failed-bulk-action-preserves-server-count-and-reports-error",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "bulk-actions-persist-and-preserve-new-unread",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "browser-back-returns-to-notification-bell",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "account-groups-and-order",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "back-restores-profile-focus-and-scroll-with-pending-device-load",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "embedded-security",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "embedded-notifications",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "embedded-preferences",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "embedded-devices",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "embedded-support",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "embedded-promotions",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "embedded-verification",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "embedded-preferences",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "preferences-persisted",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "embedded-security",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "wallet-request-no-automatic-credit",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "embedded-support",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "general-support-created",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "support-submit-reachable-in-reduced-viewport",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "support-reply-persisted",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "support-attachment-uploaded",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "staff-authorized-attachment",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "attachment-admin-route-denies-customer",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "support-attachment-authorized-download",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "support-closed",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "support-reopened",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "embedded-promotions",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "promotion-redeemed",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "promotion-replay-no-second-credit",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "reset-email-opens-index-modal",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "maintenance-blocks-escape",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "maintenance-background-inert",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "confirmed-maintenance-survives-network-error",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "maintenance-refresh-reloads",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "maintenance-clears-without-reload",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "wallet-request-email-opens-exact-owner-record",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "order-email-opens-exact-owner-record",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "foreign-order-email-does-not-disclose-record",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "layout-css-320",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "layout-css-375",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "layout-css-390",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "layout-css-430",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "layout-css-768",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "layout-css-1024",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "layout-css-1280",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "layout-css-1440",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "layout-css-1920",
+          "sonuç": "PASS"
+        }
+      ],
+      "media": [
+        {
+          "ad": "admin-product-editor-publishes-eight-ordered-images",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "esign-card-decodes-original-webp",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "featured-frame-runs-in-view-pauses-offscreen-and-respects-reduced-motion",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "eight-distinct-decoded-gallery-slides-and-thumbnails",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "guest-password-reset-opens-dialog-and-submits-once",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "guest-username-recovery-opens-dialog-and-submits-once",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "edge-to-edge-slider-wraps-while-play-button-keeps-focus",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "admin-selection-order-hidden-images-and-overlay-free-viewport-on-fresh-home",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "saved-slider-order-survives-admin-reload",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "empty-selection-hides-slider-without-default-image",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "two-unavailable-files-use-a-real-card-cover-and-six-distinct-gallery-images",
+          "sonuç": "PASS"
+        }
+      ],
+      "mobile": [
+        {
+          "ad": "iphone-guest-320",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "iphone-guest-360",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "iphone-guest-375",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "iphone-guest-390",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "iphone-guest-393",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "iphone-guest-412",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "iphone-guest-414",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "iphone-guest-430",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "android-guest-320",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "android-guest-360",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "android-guest-375",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "android-guest-390",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "android-guest-393",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "android-guest-412",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "android-guest-414",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "android-guest-430",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "shared-iphone-android-layout",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "iphone-member-320x844",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "iphone-member-390x844",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "android-member-430x844",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "iphone-member-844x390",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "safe-area-and-orientation",
+          "sonuç": "PASS"
+        }
+      ],
+      "modern": [
+        {
+          "ad": "link-edit-reorder-and-home-publication",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "link-create-toggle-delete-and-malicious-url",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "status-dialog-keyboard-focus-and-payment-evidence",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "bulk-preview-confirm-progress-and-reload-recovery",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "audit-cards-search-and-retention-aware-purge",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "evidence-based-security",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "security-warning-colors-and-remediation-match-failed-controls",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "links-responsive-320",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "orders-responsive-320",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "audit-responsive-320",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "security-responsive-320",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "links-responsive-360",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "orders-responsive-360",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "audit-responsive-360",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "security-responsive-360",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "links-responsive-390",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "orders-responsive-390",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "audit-responsive-390",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "security-responsive-390",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "links-responsive-430",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "orders-responsive-430",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "audit-responsive-430",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "security-responsive-430",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "links-responsive-768",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "orders-responsive-768",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "audit-responsive-768",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "security-responsive-768",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "links-responsive-1440",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "orders-responsive-1440",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "audit-responsive-1440",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "security-responsive-1440",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "android-user-agent-and-touch-modal",
+          "sonuç": "PASS"
+        }
+      ],
+      "store": [
+        {
+          "ad": "home-320",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "home-390",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "home-768",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "home-1440",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "permitted-categories",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "all-products-and-plans",
+          "sonuç": "PASS"
+        }
+      ],
+      "community": [
+        {
+          "ad": "guest-sign-in-without-write",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "member-like-without-review",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "community-layout-320",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "community-layout-375",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "community-layout-390",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "community-layout-430",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "community-layout-768",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "community-layout-1280",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "purchaser-review-persisted",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "two-member-profiles",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "invitation-opens-reviewed-product",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "buyer-reply-with-full-usernames",
+          "sonuç": "PASS"
+        },
+        {
+          "ad": "thread-survives-reload",
+          "sonuç": "PASS"
+        }
+      ]
+    }
+  },
+  "Firebase_kural_testleri": {
+    "project": "demo-zentra-rules",
+    "emulators": [
+      "auth",
+      "firestore",
+      "storage"
+    ],
+    "passed": 10,
+    "failed": 0,
+    "cases": [
+      "guest-private-document-read-denied",
+      "guest-direct-balance-write-denied",
+      "guest-public-product-media-readable",
+      "guest-support-file-read-denied",
+      "guest-public-media-write-denied",
+      "member-private-document-read-denied",
+      "member-direct-balance-write-denied",
+      "member-public-product-media-readable",
+      "member-support-file-read-denied",
+      "member-public-media-write-denied"
+    ]
+  },
+  "Firestore_emülatörü": [
+    {
+      "projectId": "demo-zentra-inbox",
+      "unreadBefore": 304,
+      "marked": 304,
+      "deleted": 316,
+      "remainingUnread": 1,
+      "independentWorkerChecks": 4
+    },
+    {
+      "retirementPreservedOrderAndDelivery": true,
+      "siteReceipts": 1,
+      "emailReceipts": 1,
+      "concurrentCampaignWorkers": 2,
+      "restoredBuyerLike": true,
+      "restoredBuyerReview": true,
+      "buyerReplyPersisted": true,
+      "concurrentInvitationRechecked": true,
+      "staleCartPriceRejected": true
+    }
+  ],
+  "zamanlayıcı_komutunun_yerel_testi": {
+    "transport": "local controlled HTTP responses",
+    "cases": [
+      {
+        "case": "counts",
+        "passed": true
+      },
+      {
+        "case": "status",
+        "passed": true
+      },
+      {
+        "case": "bad",
+        "passed": true
+      },
+      {
+        "case": "secret",
+        "passed": true
+      },
+      {
+        "case": "http",
+        "passed": true
+      },
+      {
+        "case": "path",
+        "passed": true
+      }
+    ]
+  },
+  "yerel_HTTP_sunucu": {
+    "result": "PASS",
+    "health": 200,
+    "missingConfigurationReadiness": 503,
+    "financialMutations": 0
+  },
+  "statik_yayın_üretimi": {
+    "sonuç": "PASS",
+    "ürünler": 26
+  },
+  "paket_güvenlik_taraması": {
+    "verified": true,
+    "checkedAt": 1795865967415,
+    "scopes": {
+      "server": {
+        "verified": true,
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      },
+      "functions": {
+        "verified": true,
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      }
+    },
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0,
+    "vulnerabilities": 0
+  },
+  "gecikmeler_yerel_HTTP": {
+    "result": "PASS",
+    "scope": "Local HTTP, real Express/business services, in-memory Firebase boundary; not a production load benchmark",
+    "results": [
+      {
+        "path": "/api/store/catalog",
+        "samples": 20,
+        "medianMs": 19,
+        "p95Ms": 25.95
+      },
+      {
+        "path": "/api/store/links",
+        "samples": 20,
+        "medianMs": 6.83,
+        "p95Ms": 11.71
+      },
+      {
+        "path": "/api/store/account",
+        "samples": 20,
+        "medianMs": 2.38,
+        "p95Ms": 5.83
+      }
+    ]
+  },
+  "katalog_Firestore_ölçümü": {
+    "yöntem": "Aynı beş ardışık gerçek HTTP katalog isteği ve aynı test hesapları ile bellek içindeki Firestore sınırında sayılan belge, sorgu ve yazma işlemleri. İlk yüklemede karşılaştırılan sürümlerin kendi katalogları kullanıldı.",
+    "ölçümler": {
+      "v116": {
+        "1": {
+          "reads": 4,
+          "queries": 4,
+          "commits": 2,
+          "writes": 2
+        },
+        "2": {
+          "reads": 0,
+          "queries": 0,
+          "commits": 0,
+          "writes": 0
+        },
+        "3": {
+          "reads": 0,
+          "queries": 0,
+          "commits": 0,
+          "writes": 0
+        },
+        "4": {
+          "reads": 0,
+          "queries": 0,
+          "commits": 0,
+          "writes": 0
+        },
+        "5": {
+          "reads": 0,
+          "queries": 0,
+          "commits": 0,
+          "writes": 0
+        }
+      },
+      "v117": {
+        "1": {
+          "reads": 4,
+          "queries": 4,
+          "commits": 2,
+          "writes": 2
+        },
+        "2": {
+          "reads": 0,
+          "queries": 0,
+          "commits": 0,
+          "writes": 0
+        },
+        "3": {
+          "reads": 0,
+          "queries": 0,
+          "commits": 0,
+          "writes": 0
+        },
+        "4": {
+          "reads": 0,
+          "queries": 0,
+          "commits": 0,
+          "writes": 0
+        },
+        "5": {
+          "reads": 0,
+          "queries": 0,
+          "commits": 0,
+          "writes": 0
+        }
+      }
+    }
+  },
+  "DNS_TXT": [
+    {
+      "alan": "zentrastore.com.tr",
+      "DNS_durumu": 0,
+      "kayıt": []
+    },
+    {
+      "alan": "_dmarc.zentrastore.com.tr",
+      "DNS_durumu": 0,
+      "kayıt": [
+        "v=DMARC1; p=none;"
+      ]
+    },
+    {
+      "alan": "send.zentrastore.com.tr",
+      "DNS_durumu": 0,
+      "kayıt": [
+        "v=spf1 ip4:52.3.252.119 ip4:44.222.39.36 ip4:199.249.231.0/24 ~all"
+      ]
+    },
+    {
+      "alan": "resend._domainkey.zentrastore.com.tr",
+      "DNS_durumu": 0,
+      "kayıt": [
+        "DKIM açık anahtarı bulundu"
+      ]
+    }
+  ],
+  "üretim_erişimi": {
+    "dağıtım": false,
+    "canlı_müşteriye_e_posta": false,
+    "canlı_ödeme": false,
+    "canlı_ürün_silme": false
+  }
+}
